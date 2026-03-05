@@ -109,4 +109,4 @@ MIT — free to use, modify, and deploy.
 
 ---
 
-*Built by Hemant Naik · Powered by Claude Sonnet 4.5 *
+** Built by Hemant Naik · Powered by Claude Sonnet 4.5 **
