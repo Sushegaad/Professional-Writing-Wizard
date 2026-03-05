@@ -108,5 +108,4 @@ See **[architecture.html](https://sushegaad.github.io/Professional-Writing-Wizar
 MIT — free to use, modify, and deploy.
 
 ---
-
-** Built by Hemant Naik · Powered by Claude Sonnet 4.5 **
+**ABuilt by Hemant Naik · Powered by Claude Sonnet 4.5** 
