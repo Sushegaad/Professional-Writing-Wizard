@@ -3,9 +3,6 @@
 **A zero-backend AI writing coach** that rewrites your professional content across three styles, provides tone heatmaps, and explains every change with coaching insights.
 
 **Live demo:** `https://sushegaad.github.io/Professional-Writing-Wizard/`
-
-**Architecture:** [View system design →](architecture.html)
-
 ---
 
 ## Features
@@ -80,7 +77,7 @@ Check progress under your repo's **Actions** tab.
 
 ## Architecture
 
-See **[architecture.html](architecture.html)** for a visual deep-dive including:
+See **[architecture.html](https://sushegaad.github.io/Professional-Writing-Wizard/architecture.html)** for a visual deep-dive including:
 
 - System layer diagram (UI → Logic → AI Provider)
 - File responsibility breakdown
