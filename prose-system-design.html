@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prose — System Design Diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f1117;
+    font-family: 'DM Sans', sans-serif;
+    color: #e8e2d9;
+    min-height: 100vh;
+    padding: 40px 32px;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .page-title {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.6rem;
+    color: #faf7f2;
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+  }
+
+  .page-subtitle {
+    font-size: 0.82rem;
+    color: #6b6357;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .diagram-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* SVG DIAGRAM */
+  .main-svg {
+    width: 100%;
+    display: block;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: #8a7d6b;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .legend-color {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+  }
+
+  /* NOTES */
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 40px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .note-card {
+    background: #1a1d26;
+    border: 1px solid #2a2d3a;
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+
+  .note-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #c8860a;
+    margin-bottom: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .note-text {
+    font-size: 0.78rem;
+    color: #8a9bb5;
+    line-height: 1.6;
+  }
+
+  .note-text ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .note-text li::before {
+    content: '→ ';
+    color: #3d5a8a;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">Prose — System Design</div>
+  <div class="page-subtitle">Architecture & Data Flow Diagram</div>
+</div>
+
+<div class="diagram-container">
+  <svg class="main-svg" viewBox="0 0 1100 780" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Gradients -->
+      <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#1a1d26;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#141720;stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="userGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#2a3a5c;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#1e2d4a;stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="browserGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#1e3a2a;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#162a1e;stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="apiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#3d2a0a;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#2d1f08;stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="claudeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#3a1a2a;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#2a1220;stop-opacity:1" />
+      </linearGradient>
+
+      <!-- Arrow markers -->
+      <marker id="arrowAmber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#c8860a"/>
+      </marker>
+      <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#4a7ab5"/>
+      </marker>
+      <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#2d7a4f"/>
+      </marker>
+      <marker id="arrowGray" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#4a4540"/>
+      </marker>
+      <marker id="arrowPurple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#7a4ab5"/>
+      </marker>
+
+      <!-- Glow filter -->
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="subtleGlow">
+        <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- Background -->
+    <rect width="1100" height="780" fill="url(#bgGrad)" rx="12"/>
+
+    <!-- Grid dots pattern -->
+    <pattern id="dots" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.8" fill="#2a2d3a"/>
+    </pattern>
+    <rect width="1100" height="780" fill="url(#dots)" rx="12" opacity="0.6"/>
+
+    <!-- ============================================ -->
+    <!-- LAYER LABELS (Left side) -->
+    <!-- ============================================ -->
+    <text x="18" y="175" fill="#3a3530" font-family="DM Mono, monospace" font-size="9" transform="rotate(-90, 18, 175)" text-anchor="middle" letter-spacing="2">USER</text>
+    <text x="18" y="390" fill="#2a3528" font-family="DM Mono, monospace" font-size="9" transform="rotate(-90, 18, 390)" text-anchor="middle" letter-spacing="2">BROWSER / CLIENT</text>
+    <text x="18" y="600" fill="#3a2d18" font-family="DM Mono, monospace" font-size="9" transform="rotate(-90, 18, 600)" text-anchor="middle" letter-spacing="2">EXTERNAL API</text>
+
+    <!-- Layer bands (subtle) -->
+    <rect x="30" y="80" width="1055" height="145" rx="6" fill="#1e2230" opacity="0.4"/>
+    <rect x="30" y="240" width="1055" height="300" rx="6" fill="#1a2520" opacity="0.4"/>
+    <rect x="30" y="555" width="1055" height="185" rx="6" fill="#251d0e" opacity="0.4"/>
+
+    <!-- Layer labels (horizontal) -->
+    <text x="60" y="102" fill="#3a4060" font-family="DM Mono, monospace" font-size="9.5" letter-spacing="3" text-anchor="start">USER LAYER</text>
+    <text x="60" y="262" fill="#2a4030" font-family="DM Mono, monospace" font-size="9.5" letter-spacing="3" text-anchor="start">CLIENT / BROWSER LAYER</text>
+    <text x="60" y="575" fill="#4a3820" font-family="DM Mono, monospace" font-size="9.5" letter-spacing="3" text-anchor="start">EXTERNAL SERVICES LAYER</text>
+
+
+    <!-- ============================================ -->
+    <!-- USER NODE -->
+    <!-- ============================================ -->
+    <g transform="translate(200, 115)">
+      <rect x="-60" y="-30" width="120" height="60" rx="8" fill="url(#userGrad)" stroke="#3a5a8a" stroke-width="1.5"/>
+      <!-- Person icon -->
+      <circle cx="-25" cy="-6" r="8" fill="none" stroke="#4a7ab5" stroke-width="1.5"/>
+      <path d="M-40,18 Q-40,4 -25,4 Q-10,4 -10,18" fill="none" stroke="#4a7ab5" stroke-width="1.5"/>
+      <text x="8" y="-7" fill="#a8c4e0" font-family="DM Sans, sans-serif" font-size="11" font-weight="500">User</text>
+      <text x="8" y="8" fill="#4a7ab5" font-family="DM Mono, monospace" font-size="8.5">Human</text>
+    </g>
+
+    <!-- ============================================ -->
+    <!-- BROWSER UI BOX (big container) -->
+    <!-- ============================================ -->
+    <rect x="45" y="278" width="1000" height="244" rx="10" fill="#111418" stroke="#2a3528" stroke-width="1.5"/>
+    <text x="65" y="300" fill="#2d7a4f" font-family="DM Mono, monospace" font-size="9" letter-spacing="2">SINGLE-PAGE APPLICATION  ·  Pure HTML/CSS/JS (No Framework)</text>
+
+    <!-- ============================================ -->
+    <!-- UI COMPONENTS (inside browser) -->
+    <!-- ============================================ -->
+
+    <!-- INPUT PANE -->
+    <g transform="translate(100, 375)">
+      <rect x="-70" y="-50" width="140" height="100" rx="8" fill="#1a2520" stroke="#2d5a3a" stroke-width="1.5"/>
+      <rect x="-70" y="-50" width="140" height="22" rx="8" fill="#1e3528"/>
+      <rect x="-70" y="-36" width="140" height="8" rx="0" fill="#1e3528"/>
+      <text x="0" y="-33" fill="#4aaa6a" font-family="DM Mono, monospace" font-size="8" text-anchor="middle" letter-spacing="1">INPUT PANE</text>
+      <rect x="-56" y="-18" width="112" height="6" rx="2" fill="#253528" opacity="0.8"/>
+      <rect x="-56" y="-8" width="90" height="6" rx="2" fill="#253528" opacity="0.6"/>
+      <rect x="-56" y="2" width="100" height="6" rx="2" fill="#253528" opacity="0.5"/>
+      <rect x="-56" y="12" width="75" height="6" rx="2" fill="#253528" opacity="0.4"/>
+      <text x="0" y="38" fill="#4aaa6a" font-family="DM Sans, sans-serif" font-size="9" text-anchor="middle" font-weight="500">Textarea</text>
+      <text x="0" y="50" fill="#3a6a4a" font-family="DM Mono, monospace" font-size="7.5" text-anchor="middle">oninput handler</text>
+    </g>
+
+    <!-- OUTPUT PANE -->
+    <g transform="translate(300, 375)">
+      <rect x="-70" y="-50" width="140" height="100" rx="8" fill="#1a2520" stroke="#2d5a3a" stroke-width="1.5"/>
+      <rect x="-70" y="-50" width="140" height="22" rx="8" fill="#1e3528"/>
+      <rect x="-70" y="-36" width="140" height="8" rx="0" fill="#1e3528"/>
+      <text x="0" y="-33" fill="#4aaa6a" font-family="DM Mono, monospace" font-size="8" text-anchor="middle" letter-spacing="1">OUTPUT PANE</text>
+      <!-- Diff segments simulation -->
+      <rect x="-56" y="-18" width="60" height="6" rx="2" fill="#253528" opacity="0.8"/>
+      <rect x="8" y="-18" width="48" height="6" rx="2" fill="#1a3a28" opacity="1"/> <!-- green highlight -->
+      <rect x="-56" y="-8" width="112" height="6" rx="2" fill="#253528" opacity="0.6"/>
+      <rect x="-56" y="2" width="45" height="6" rx="2" fill="#253528" opacity="0.5"/>
+      <rect x="-6" y="2" width="62" height="6" rx="2" fill="#1a3a28" opacity="0.9"/>
+      <rect x="-56" y="12" width="112" height="6" rx="2" fill="#253528" opacity="0.4"/>
+      <text x="0" y="38" fill="#4aaa6a" font-family="DM Sans, sans-serif" font-size="9" text-anchor="middle" font-weight="500">Diff Renderer</text>
+      <text x="0" y="50" fill="#3a6a4a" font-family="DM Mono, monospace" font-size="7.5" text-anchor="middle">innerHTML injection</text>
+    </g>
+
+    <!-- TOOLBAR / MODE SELECTOR -->
+    <g transform="translate(505, 310)">
+      <rect x="-70" y="-22" width="140" height="44" rx="7" fill="#1a2015" stroke="#2a3a20" stroke-width="1.2"/>
+      <text x="0" y="-6" fill="#6a9a5a" font-family="DM Mono, monospace" font-size="8" text-anchor="middle" letter-spacing="1">TOOLBAR</text>
+      <text x="0" y="8" fill="#4a7a3a" font-family="DM Sans, sans-serif" font-size="8.5" text-anchor="middle">Mode Toggle · Enhance Btn</text>
+      <text x="0" y="18" fill="#3a5a2a" font-family="DM Mono, monospace" font-size="7.5" text-anchor="middle">polish | simplify | formal | concise</text>
+    </g>
+
+    <!-- CHANGE DETAIL PANEL -->
+    <g transform="translate(505, 415)">
+      <rect x="-70" y="-35" width="140" height="70" rx="7" fill="#1a1520" stroke="#3a2a40" stroke-width="1.2"/>
+      <text x="0" y="-18" fill="#9a6aaa" font-family="DM Mono, monospace" font-size="8" text-anchor="middle" letter-spacing="1">CHANGE PANEL</text>
+      <text x="0" y="-5" fill="#7a4a8a" font-family="DM Sans, sans-serif" font-size="8.5" text-anchor="middle">Slide-in detail drawer</text>
+      <!-- Mini comparison blocks -->
+      <rect x="-55" y="5" width="52" height="14" rx="3" fill="#3a1a1a"/>
+      <rect x="3" y="5" width="52" height="14" rx="3" fill="#1a3a2a"/>
+      <text x="-29" y="15" fill="#c0392b" font-family="DM Mono, monospace" font-size="6.5" text-anchor="middle">Original</text>
+      <text x="29" y="15" fill="#2d7a4f" font-family="DM Mono, monospace" font-size="6.5" text-anchor="middle">Improved</text>
+      <text x="0" y="30" fill="#5a3a6a" font-family="DM Mono, monospace" font-size="7.5" text-anchor="middle">Accept / Decline</text>
+    </g>
+
+    <!-- STATE MANAGER -->
+    <g transform="translate(710, 375)">
+      <rect x="-75" y="-55" width="150" height="110" rx="8" fill="#141820" stroke="#2a3050" stroke-width="1.5"/>
+      <text x="0" y="-37" fill="#5a7aaa" font-family="DM Mono, monospace" font-size="8" text-anchor="middle" letter-spacing="1">STATE MANAGER</text>
+      <text x="0" y="-24" fill="#3a5a8a" font-family="DM Sans, sans-serif" font-size="8" text-anchor="middle">In-memory JS Variables</text>
+      <!-- State items -->
+      <rect x="-60" y="-16" width="120" height="12" rx="2" fill="#1a2030"/>
+      <text x="-52" y="-7" fill="#4a6a9a" font-family="DM Mono, monospace" font-size="7.5">changes[ ]</text>
+      <rect x="-60" y="-2" width="120" height="12" rx="2" fill="#1a2030"/>
+      <text x="-52" y="7" fill="#4a6a9a" font-family="DM Mono, monospace" font-size="7.5">acceptedChanges Set</text>
+      <rect x="-60" y="12" width="120" height="12" rx="2" fill="#1a2030"/>
+      <text x="-52" y="21" fill="#4a6a9a" font-family="DM Mono, monospace" font-size="7.5">declinedChanges Set</text>
+      <rect x="-60" y="26" width="120" height="12" rx="2" fill="#1a2030"/>
+      <text x="-52" y="35" fill="#4a6a9a" font-family="DM Mono, monospace" font-size="7.5">currentMode: string</text>
+      <text x="0" y="52" fill="#2a4a7a" font-family="DM Mono, monospace" font-size="7" text-anchor="middle">No localStorage · No persistence</text>
+    </g>
+
+    <!-- CLIPBOARD API -->
+    <g transform="translate(930, 350)">
+      <rect x="-60" y="-28" width="120" height="56" rx="7" fill="#141820" stroke="#2a3050" stroke-width="1.2"/>
+      <text x="0" y="-10" fill="#5a7aaa" font-family="DM Mono, monospace" font-size="8" text-anchor="middle" letter-spacing="1">BROWSER APIs</text>
+      <text x="0" y="5" fill="#3a5a8a" font-family="DM Sans, sans-serif" font-size="8.5" text-anchor="middle">navigator.clipboard</text>
+      <text x="0" y="18" fill="#2a4a7a" font-family="DM Mono, monospace" font-size="7.5" text-anchor="middle">readText / writeText</text>
+    </g>
+
+    <!-- WORD COUNT -->
+    <g transform="translate(930, 440)">
+      <rect x="-60" y="-20" width="120" height="40" rx="7" fill="#141820" stroke="#2a3050" stroke-width="1.2"/>
+      <text x="0" y="-5" fill="#5a7aaa" font-family="DM Mono, monospace" font-size="8" text-anchor="middle" letter-spacing="1">WORD COUNTER</text>
+      <text x="0" y="10" fill="#3a5a8a" font-family="DM Sans, sans-serif" font-size="8" text-anchor="middle">Live split(/\s+/).length</text>
+    </g>
+
+    <!-- ============================================ -->
+    <!-- HTTPS REQUEST BOX -->
+    <!-- ============================================ -->
+    <g transform="translate(505, 520)">
+      <rect x="-130" y="-22" width="260" height="44" rx="7" fill="#251d0e" stroke="#4a3820" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="0" y="-5" fill="#c8860a" font-family="DM Mono, monospace" font-size="8.5" text-anchor="middle" letter-spacing="2">HTTPS POST REQUEST</text>
+      <text x="0" y="11" fill="#8a6030" font-family="DM Mono, monospace" font-size="8" text-anchor="middle">api.anthropic.com/v1/messages  ·  No auth header (handled externally)</text>
+    </g>
+
+    <!-- ============================================ -->
+    <!-- ANTHROPIC API GATEWAY -->
+    <!-- ============================================ -->
+    <g transform="translate(280, 650)">
+      <rect x="-100" y="-38" width="200" height="76" rx="9" fill="url(#apiGrad)" stroke="#6a4010" stroke-width="1.5"/>
+      <text x="0" y="-18" fill="#f0a020" font-family="DM Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="2">API GATEWAY</text>
+      <text x="0" y="-4" fill="#c8860a" font-family="DM Sans, sans-serif" font-size="9.5" text-anchor="middle" font-weight="500">Anthropic API</text>
+      <text x="0" y="11" fill="#8a6030" font-family="DM Mono, monospace" font-size="8" text-anchor="middle">Rate limiting · Auth · Routing</text>
+      <text x="0" y="25" fill="#6a4820" font-family="DM Mono, monospace" font-size="7.5" text-anchor="middle">Content-Type: application/json</text>
+    </g>
+
+    <!-- ============================================ -->
+    <!-- CLAUDE MODEL -->
+    <!-- ============================================ -->
+    <g transform="translate(620, 650)">
+      <rect x="-150" y="-48" width="300" height="96" rx="9" fill="url(#claudeGrad)" stroke="#6a2a50" stroke-width="1.5"/>
+      <!-- Star decoration -->
+      <text x="-120" y="-20" fill="#c060a0" font-family="serif" font-size="16">✦</text>
+      <text x="0" y="-24" fill="#e060b0" font-family="DM Mono, monospace" font-size="9" text-anchor="middle" letter-spacing="2">INFERENCE ENGINE</text>
+      <text x="0" y="-9" fill="#c8a0c0" font-family="DM Sans, sans-serif" font-size="10.5" text-anchor="middle" font-weight="600">Claude Sonnet 4</text>
+      <text x="0" y="7" fill="#8a5a7a" font-family="DM Mono, monospace" font-size="8" text-anchor="middle">claude-sonnet-4-20250514</text>
+      <text x="0" y="21" fill="#6a3a5a" font-family="DM Mono, monospace" font-size="7.5" text-anchor="middle">System prompt: mode-specific instructions</text>
+      <text x="0" y="34" fill="#6a3a5a" font-family="DM Mono, monospace" font-size="7.5" text-anchor="middle">Response: JSON array of change objects</text>
+      <text x="120" y="-20" fill="#c060a0" font-family="serif" font-size="16">✦</text>
+    </g>
+
+    <!-- ============================================ -->
+    <!-- RESPONSE PARSER -->
+    <!-- ============================================ -->
+    <g transform="translate(930, 650)">
+      <rect x="-80" y="-38" width="160" height="76" rx="8" fill="#1a1d12" stroke="#3a4020" stroke-width="1.5"/>
+      <text x="0" y="-18" fill="#8aaa40" font-family="DM Mono, monospace" font-size="8" text-anchor="middle" letter-spacing="1">RESPONSE PARSER</text>
+      <text x="0" y="-4" fill="#6a8a30" font-family="DM Sans, sans-serif" font-size="9" text-anchor="middle" font-weight="500">JSON.parse()</text>
+      <text x="0" y="11" fill="#4a6a20" font-family="DM Mono, monospace" font-size="7.5" text-anchor="middle">Strip markdown fences</text>
+      <text x="0" y="24" fill="#4a6a20" font-family="DM Mono, monospace" font-size="7.5" text-anchor="middle">Validate schema</text>
+      <text x="0" y="36" fill="#3a5a10" font-family="DM Mono, monospace" font-size="7" text-anchor="middle">try/catch fallback → [ ]</text>
+    </g>
+
+
+    <!-- ============================================ -->
+    <!-- ARROWS / CONNECTIONS -->
+    <!-- ============================================ -->
+
+    <!-- User → Toolbar (paste/type) -->
+    <line x1="200" y1="145" x2="200" y2="285" stroke="#4a7ab5" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowBlue)" opacity="0.7"/>
+    <text x="210" y="220" fill="#3a5a8a" font-family="DM Mono, monospace" font-size="7.5">paste / type</text>
+
+    <!-- User → Toolbar (click enhance) -->
+    <line x1="220" y1="118" x2="430" y2="296" stroke="#4a7ab5" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowBlue)" opacity="0.5"/>
+    <text x="310" y="200" fill="#3a5a8a" font-family="DM Mono, monospace" font-size="7.5">click Enhance</text>
+
+    <!-- Input Pane → State Manager -->
+    <path d="M 370,375 Q 520,350 635,375" stroke="#4aaa6a" stroke-width="1.3" fill="none" stroke-dasharray="3,2" marker-end="url(#arrowGreen)" opacity="0.6"/>
+    <text x="490" y="355" fill="#2d7a4f" font-family="DM Mono, monospace" font-size="7">text value</text>
+
+    <!-- Output Pane ← State Manager (re-render) -->
+    <path d="M 635,395 Q 520,420 370,395" stroke="#9a6aaa" stroke-width="1.3" fill="none" stroke-dasharray="3,2" marker-end="url(#arrowPurple)" opacity="0.6"/>
+    <text x="490" y="422" fill="#7a4a8a" font-family="DM Mono, monospace" font-size="7">renderOutput()</text>
+
+    <!-- Change Panel ↔ State Manager -->
+    <line x1="575" y1="415" x2="635" y2="400" stroke="#9a6aaa" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#arrowPurple)" opacity="0.6"/>
+
+    <!-- State → Change Panel -->
+    <line x1="635" y1="380" x2="576" y2="388" stroke="#4a6a9a" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#arrowBlue)" opacity="0.5"/>
+
+    <!-- Toolbar → HTTPS Request -->
+    <line x1="505" y1="332" x2="505" y2="498" stroke="#c8860a" stroke-width="1.8" marker-end="url(#arrowAmber)" opacity="0.8"/>
+    <text x="515" y="420" fill="#8a6030" font-family="DM Mono, monospace" font-size="7.5">fetch()</text>
+
+    <!-- HTTPS Request → API Gateway -->
+    <line x1="420" y1="542" x2="350" y2="612" stroke="#c8860a" stroke-width="1.8" marker-end="url(#arrowAmber)" opacity="0.8"/>
+
+    <!-- API Gateway → Claude -->
+    <line x1="380" y1="650" x2="470" y2="650" stroke="#c060a0" stroke-width="1.5" marker-end="url(#arrowPurple)" opacity="0.8"/>
+    <text x="410" y="644" fill="#8a4a7a" font-family="DM Mono, monospace" font-size="7">route</text>
+
+    <!-- Claude → Response Parser -->
+    <line x1="770" y1="650" x2="850" y2="650" stroke="#8aaa40" stroke-width="1.5" marker-end="url(#arrowGreen)" opacity="0.8"/>
+    <text x="796" y="644" fill="#6a8a30" font-family="DM Mono, monospace" font-size="7">response</text>
+
+    <!-- Response Parser → State Manager (back up) -->
+    <path d="M 930,612 Q 930,540 840,490 Q 790,470 785,420" stroke="#8aaa40" stroke-width="1.5" fill="none" marker-end="url(#arrowGreen)" opacity="0.7"/>
+    <text x="940" y="530" fill="#4a7a20" font-family="DM Mono, monospace" font-size="7" text-anchor="middle">parsed</text>
+    <text x="940" y="541" fill="#4a7a20" font-family="DM Mono, monospace" font-size="7" text-anchor="middle">changes[]</text>
+
+    <!-- State Manager → Browser APIs -->
+    <line x1="785" y1="355" x2="870" y2="340" stroke="#4a7ab5" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#arrowBlue)" opacity="0.5"/>
+    <!-- Browser APIs → Output Pane (copy) -->
+    <line x1="870" y1="360" x2="785" y2="370" stroke="#4a7ab5" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#arrowBlue)" opacity="0.4"/>
+
+    <!-- Output Pane → User (view) -->
+    <path d="M 300,325 Q 300,210 230,165" stroke="#4a7ab5" stroke-width="1.3" fill="none" stroke-dasharray="4,3" marker-end="url(#arrowBlue)" opacity="0.4"/>
+    <text x="270" y="240" fill="#3a5a8a" font-family="DM Mono, monospace" font-size="7">view diff</text>
+
+    <!-- User → Change Panel (click) -->
+    <path d="M 230,130 Q 480,130 495,295" stroke="#9a6aaa" stroke-width="1.2" fill="none" stroke-dasharray="4,3" marker-end="url(#arrowPurple)" opacity="0.4"/>
+    <text x="390" y="125" fill="#6a4a8a" font-family="DM Mono, monospace" font-size="7">click change</text>
+
+
+    <!-- ============================================ -->
+    <!-- CHANGE OBJECT SCHEMA (floating box) -->
+    <!-- ============================================ -->
+    <g transform="translate(165, 650)">
+      <rect x="-115" y="-90" width="230" height="180" rx="8" fill="#0e1015" stroke="#2a2d3a" stroke-width="1.2"/>
+      <text x="0" y="-70" fill="#5a6a8a" font-family="DM Mono, monospace" font-size="8" text-anchor="middle" letter-spacing="2">CHANGE OBJECT SCHEMA</text>
+      <text x="-98" y="-54" fill="#3a8a5a" font-family="DM Mono, monospace" font-size="7.5">{</text>
+      <text x="-85" y="-40" fill="#6a9aaa" font-family="DM Mono, monospace" font-size="7.5">"id":       <tspan fill="#a07060">"c1"</tspan></text>
+      <text x="-85" y="-26" fill="#6a9aaa" font-family="DM Mono, monospace" font-size="7.5">"type":     <tspan fill="#a07060">"replace"</tspan></text>
+      <text x="-85" y="-12" fill="#6a9aaa" font-family="DM Mono, monospace" font-size="7.5">"original": <tspan fill="#a07060">"..."</tspan></text>
+      <text x="-85" y="2" fill="#6a9aaa" font-family="DM Mono, monospace" font-size="7.5">"improved": <tspan fill="#a07060">"..."</tspan></text>
+      <text x="-85" y="16" fill="#6a9aaa" font-family="DM Mono, monospace" font-size="7.5">"reason":   <tspan fill="#a07060">"..."</tspan></text>
+      <text x="-85" y="30" fill="#6a9aaa" font-family="DM Mono, monospace" font-size="7.5">"category": <tspan fill="#a07060">"grammar"</tspan></text>
+      <text x="-98" y="44" fill="#3a8a5a" font-family="DM Mono, monospace" font-size="7.5">}</text>
+      <line x1="-105" y1="56" x2="105" y2="56" stroke="#2a2d3a" stroke-width="1"/>
+      <text x="0" y="70" fill="#3a4a5a" font-family="DM Mono, monospace" font-size="7" text-anchor="middle">max_tokens: 2000</text>
+      <text x="0" y="84" fill="#3a4a5a" font-family="DM Mono, monospace" font-size="7" text-anchor="middle">Returns 5–10 changes per call</text>
+    </g>
+
+    <!-- Arrow from Schema to API Gateway -->
+    <line x1="165" y1="560" x2="225" y2="614" stroke="#6a5a4a" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+
+    <!-- ============================================ -->
+    <!-- TITLE / WATERMARK -->
+    <!-- ============================================ -->
+    <text x="1075" y="760" fill="#2a2d3a" font-family="Libre Baskerville, serif" font-size="11" text-anchor="end" font-style="italic">Prose · System Architecture</text>
+
+    <!-- ============================================ -->
+    <!-- FLOW NUMBERS -->
+    <!-- ============================================ -->
+    <!-- Step indicators -->
+    <circle cx="195" cy="215" r="9" fill="#1a1d26" stroke="#4a7ab5" stroke-width="1.2"/>
+    <text x="195" y="219" fill="#4a7ab5" font-family="DM Mono, monospace" font-size="8" text-anchor="middle">1</text>
+
+    <circle cx="500" cy="418" r="9" fill="#1a1d26" stroke="#c8860a" stroke-width="1.2"/>
+    <text x="500" y="422" fill="#c8860a" font-family="DM Mono, monospace" font-size="8" text-anchor="middle">2</text>
+
+    <circle cx="388" cy="598" r="9" fill="#1a1d26" stroke="#c8860a" stroke-width="1.2"/>
+    <text x="388" y="602" fill="#c8860a" font-family="DM Mono, monospace" font-size="8" text-anchor="middle">3</text>
+
+    <circle cx="805" cy="650" r="9" fill="#1a1d26" stroke="#8aaa40" stroke-width="1.2"/>
+    <text x="805" y="654" fill="#8aaa40" font-family="DM Mono, monospace" font-size="8" text-anchor="middle">4</text>
+
+    <circle cx="960" cy="545" r="9" fill="#1a1d26" stroke="#8aaa40" stroke-width="1.2"/>
+    <text x="960" y="549" fill="#8aaa40" font-family="DM Mono, monospace" font-size="8" text-anchor="middle">5</text>
+
+    <circle cx="710" cy="455" r="9" fill="#1a1d26" stroke="#9a6aaa" stroke-width="1.2"/>
+    <text x="710" y="459" fill="#9a6aaa" font-family="DM Mono, monospace" font-size="8" text-anchor="middle">6</text>
+
+  </svg>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color" style="background:#4a7ab5"></div>
+      User Interaction
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background:#c8860a"></div>
+      API Request Flow
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background:#8aaa40"></div>
+      Response / Parse
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background:#9a6aaa"></div>
+      State Update / Re-render
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background:#2d7a4f"></div>
+      Internal Data Flow
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background:#e060b0"></div>
+      AI Inference
+    </div>
+  </div>
+</div>
+
+<!-- Notes -->
+<div class="notes-grid">
+  <div class="note-card">
+    <div class="note-title">① User Input</div>
+    <div class="note-text">
+      <ul>
+        <li>User pastes or types text into the left textarea</li>
+        <li>oninput fires live word count updates</li>
+        <li>Mode toggle updates <code>currentMode</code> variable</li>
+        <li>Clicking "Enhance" triggers the API call</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-title">② Fetch / API Call</div>
+    <div class="note-text">
+      <ul>
+        <li>POST to api.anthropic.com/v1/messages</li>
+        <li>System prompt encodes mode-specific instructions</li>
+        <li>Model: claude-sonnet-4-20250514</li>
+        <li>max_tokens: 2000 · Returns JSON array</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-title">③ Claude Inference</div>
+    <div class="note-text">
+      <ul>
+        <li>Analyses text against writing guidelines</li>
+        <li>Identifies 5–10 highest-impact changes</li>
+        <li>Returns structured JSON with original, improved, reason, category</li>
+        <li>Each original must match exactly for diff to work</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-title">④ Response Parsing</div>
+    <div class="note-text">
+      <ul>
+        <li>Strip markdown code fences if present</li>
+        <li>JSON.parse() with try/catch fallback to [ ]</li>
+        <li>Positioned by indexOf() in original text</li>
+        <li>Sorted by position for correct diff rendering</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-title">⑤ State Management</div>
+    <div class="note-text">
+      <ul>
+        <li>Pure in-memory JS — no localStorage</li>
+        <li>acceptedChanges / declinedChanges are ES6 Sets</li>
+        <li>Re-render triggered on every accept/decline action</li>
+        <li>All state resets on "Clear" or new enhancement</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-title">⑥ Diff Rendering</div>
+    <div class="note-text">
+      <ul>
+        <li>Segments split by change position, text, and state</li>
+        <li>Pending changes rendered as clickable green spans</li>
+        <li>Accepted = locked green; Declined = reverts to original</li>
+        <li>Copy builds final text by applying accepted changes</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
