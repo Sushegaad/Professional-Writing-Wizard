@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClearVoice — System Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg    : #080B12;
+      --s1    : #0F1522;
+      --s2    : #161E30;
+      --s3    : #1D2640;
+      --b1    : rgba(255,255,255,0.06);
+      --b2    : rgba(255,255,255,0.12);
+      --t1    : #F0F2F8;
+      --t2    : #8892A8;
+      --t3    : #4A5468;
+      --blue  : #6373FF;
+      --cyan  : #22D3EE;
+      --green : #10B981;
+      --yellow: #F59E0B;
+      --purple: #A78BFA;
+      --pink  : #F472B6;
+      --orange: #FB923C;
+      --red   : #F87171;
+      --mono  : 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg); color: var(--t1);
+      line-height: 1.6; overflow-x: hidden;
+    }
+
+    /* ── Nav ─────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; height: 56px;
+      background: rgba(8,11,18,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--b1);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-mark {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: linear-gradient(135deg, var(--blue), #9B59F5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: white; font-weight: 700;
+    }
+    .nav-name { font-size: 14px; font-weight: 800; color: var(--t1); }
+    .nav-sub  { font-size: 11px; color: var(--t3); margin-left: 2px; }
+
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a {
+      font-size: 12px; font-weight: 600; color: var(--t3);
+      text-decoration: none; transition: color .15s;
+    }
+    .nav-links a:hover { color: var(--t1); }
+
+    .nav-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 6px;
+      background: var(--blue); color: white;
+      font-size: 12px; font-weight: 700; text-decoration: none; transition: .15s;
+    }
+    .nav-cta:hover { background: #7585FF; transform: translateY(-1px); }
+
+    /* ── Sections & Layout ─────────────────────────── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 0 40px 80px; }
+
+    section { margin-top: 80px; }
+    section:first-child { margin-top: 60px; }
+
+    .section-label {
+      font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--blue); margin-bottom: 10px;
+    }
+    h2 { font-size: 28px; font-weight: 900; letter-spacing: -.5px; margin-bottom: 10px; }
+    .section-desc { font-size: 14px; color: var(--t2); max-width: 600px; line-height: 1.7; }
+
+    /* ── Hero ────────────────────────────────────────── */
+    .hero {
+      text-align: center; padding: 80px 20px 60px;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99,115,255,0.12) 0%, transparent 70%);
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--blue); background: rgba(99,115,255,0.12);
+      padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(99,115,255,0.2);
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(36px, 5vw, 56px); font-weight: 900; letter-spacing: -1.5px;
+      line-height: 1.1; margin-bottom: 18px;
+      background: linear-gradient(135deg, var(--t1) 0%, var(--blue) 60%, var(--purple) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub { font-size: 16px; color: var(--t2); max-width: 520px; margin: 0 auto 32px; line-height: 1.7; }
+    .hero-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .hero-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700;
+      text-decoration: none; transition: .18s;
+    }
+    .hero-btn-primary { background: var(--blue); color: white; }
+    .hero-btn-primary:hover { background: #7585FF; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,115,255,.35); }
+    .hero-btn-ghost { background: var(--s2); color: var(--t2); border: 1px solid var(--b2); }
+    .hero-btn-ghost:hover { color: var(--t1); border-color: var(--b2); }
+
+    /* ── Cards & Grids ───────────────────────────────── */
+    .card {
+      background: var(--s1); border: 1px solid var(--b1); border-radius: 14px; padding: 24px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .card:hover { border-color: var(--b2); box-shadow: 0 0 30px rgba(99,115,255,.07); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+    /* ── System Diagram ──────────────────────────────── */
+    .diagram {
+      background: var(--s1); border: 1px solid var(--b1); border-radius: 16px;
+      padding: 36px 40px; margin-top: 24px; position: relative; overflow: hidden;
+    }
+    .diagram::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 40% at 50% -10%, rgba(99,115,255,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .diag-layer {
+      background: var(--s2); border: 1px solid var(--b1); border-radius: 12px;
+      padding: 20px 24px; margin-bottom: 16px;
+    }
+    .diag-layer:last-child { margin-bottom: 0; }
+
+    .diag-layer-title {
+      font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .diag-layer-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .diag-boxes { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .diag-box {
+      flex: 1; min-width: 120px; background: var(--s3); border: 1px solid var(--b1);
+      border-radius: 8px; padding: 12px 14px; text-align: center;
+      transition: .2s; position: relative;
+    }
+    .diag-box:hover { border-color: var(--b2); transform: translateY(-2px); }
+    .diag-box-icon { font-size: 18px; margin-bottom: 5px; }
+    .diag-box-name { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+    .diag-box-desc { font-size: 10px; color: var(--t3); line-height: 1.5; }
+
+    .diag-arrow {
+      display: flex; justify-content: center; align-items: center;
+      margin: 8px 0; color: var(--t3); font-size: 11px; font-weight: 600;
+      gap: 6px;
+    }
+    .arrow-line { flex: 1; max-width: 200px; height: 1px; background: linear-gradient(to right, transparent, var(--b2), transparent); }
+
+    /* ── File Tree ───────────────────────────────────── */
+    .file-tree {
+      font-family: var(--mono); font-size: 13px; line-height: 2;
+      background: var(--s1); border: 1px solid var(--b1); border-radius: 12px;
+      padding: 24px 28px; margin-top: 24px; overflow-x: auto;
+    }
+    .ft-root   { color: var(--t1); font-weight: 700; }
+    .ft-dir    { color: var(--cyan); font-weight: 600; }
+    .ft-file   { color: var(--t2); }
+    .ft-key    { color: var(--yellow); font-weight: 700; }
+    .ft-desc   { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--t3); margin-left: 12px; }
+    .ft-line   { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+    .ft-indent { display: inline-block; }
+
+    /* ── Data Flow Steps ─────────────────────────────── */
+    .flow-steps { margin-top: 24px; display: flex; flex-direction: column; gap: 0; }
+
+    .flow-step {
+      display: flex; gap: 20px; align-items: flex-start; position: relative; padding: 20px 0;
+    }
+    .flow-step:not(:last-child)::after {
+      content: ''; position: absolute; left: 20px; top: 52px; bottom: 0;
+      width: 2px; background: linear-gradient(to bottom, var(--b2), transparent);
+    }
+
+    .flow-num {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 900; background: var(--s2); border: 2px solid;
+      z-index: 1;
+    }
+    .flow-content { flex: 1; }
+    .flow-title   { font-size: 14px; font-weight: 800; margin-bottom: 6px; }
+    .flow-desc    { font-size: 13px; color: var(--t2); line-height: 1.6; }
+    .flow-tag {
+      display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 700;
+      letter-spacing: .8px; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 20px;
+    }
+    .flow-code {
+      margin-top: 10px; font-family: var(--mono); font-size: 11px; color: var(--cyan);
+      background: var(--s2); border: 1px solid var(--b1); border-radius: 6px;
+      padding: 8px 12px; white-space: pre;
+    }
+
+    /* ── Module Cards ────────────────────────────────── */
+    .module-card { background: var(--s1); border: 1px solid var(--b1); border-radius: 12px; overflow: hidden; }
+    .module-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px; border-bottom: 1px solid var(--b1);
+    }
+    .module-icon { font-size: 18px; }
+    .module-name { font-size: 13px; font-weight: 800; }
+    .module-file { font-family: var(--mono); font-size: 10px; color: var(--t3); margin-left: auto; }
+    .module-body { padding: 14px 18px; }
+    .module-fn {
+      display: flex; align-items: baseline; gap: 8px; padding: 5px 0;
+      border-bottom: 1px solid var(--b1); font-size: 12px;
+    }
+    .module-fn:last-child { border-bottom: none; }
+    .fn-name { font-family: var(--mono); font-size: 11px; font-weight: 600; }
+    .fn-desc { font-size: 11px; color: var(--t3); }
+
+    /* ── CI/CD Pipeline ──────────────────────────────── */
+    .pipeline {
+      display: flex; align-items: center; gap: 0;
+      background: var(--s1); border: 1px solid var(--b1); border-radius: 12px;
+      padding: 24px 28px; margin-top: 24px; flex-wrap: wrap; gap: 8px;
+    }
+    .pipe-step {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      background: var(--s2); border: 1px solid var(--b1); border-radius: 10px;
+      padding: 14px 18px; min-width: 130px; text-align: center;
+      position: relative; transition: .2s;
+    }
+    .pipe-step:hover { border-color: var(--b2); }
+    .pipe-step-icon  { font-size: 22px; }
+    .pipe-step-name  { font-size: 12px; font-weight: 800; }
+    .pipe-step-desc  { font-size: 10px; color: var(--t3); line-height: 1.5; }
+    .pipe-arrow      { font-size: 18px; color: var(--t3); flex-shrink: 0; }
+
+    /* ── Security ────────────────────────────────────── */
+    .security-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+    .sec-card {
+      background: var(--s1); border-radius: 12px; padding: 20px;
+      border-left: 3px solid;
+    }
+    .sec-card-title { font-size: 13px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .sec-card-body  { font-size: 12px; color: var(--t2); line-height: 1.7; }
+
+    /* ── Tech Stack ──────────────────────────────────── */
+    .tech-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .tech-chip {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--s2); border: 1px solid var(--b1); border-radius: 8px;
+      padding: 8px 14px; font-size: 12px; font-weight: 600;
+      transition: .15s;
+    }
+    .tech-chip:hover { border-color: var(--b2); }
+    .tech-chip-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+    /* ── Footer ──────────────────────────────────────── */
+    footer {
+      text-align: center; padding: 40px 20px;
+      border-top: 1px solid var(--b1); margin-top: 80px;
+      font-size: 12px; color: var(--t3);
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .security-grid { grid-template-columns: 1fr; }
+      .page { padding: 0 20px 60px; }
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .pipeline { flex-direction: column; align-items: stretch; }
+      .pipe-arrow { transform: rotate(90deg); align-self: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ NAV ═════════════════════════════════════════════════ -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <div class="nav-mark">✦</div>
+    <span class="nav-name">ClearVoice</span>
+    <span class="nav-sub">/ Architecture</span>
+  </a>
+  <div class="nav-links">
+    <a href="#overview">Overview</a>
+    <a href="#files">File Structure</a>
+    <a href="#dataflow">Data Flow</a>
+    <a href="#modules">Modules</a>
+    <a href="#cicd">CI/CD</a>
+    <a href="#security">Security</a>
+  </div>
+  <a class="nav-cta" href="index.html">← Open App</a>
+</nav>
+
+<div class="page">
+
+  <!-- ═══ HERO ═══════════════════════════════════════════ -->
+  <div class="hero">
+    <div class="hero-eyebrow">⚙ System Architecture</div>
+    <h1>How ClearVoice Works</h1>
+    <p class="hero-sub">A technical deep-dive into the architecture, data flow, module design, and deployment pipeline of the ClearVoice AI Communication Coach.</p>
+    <div class="hero-links">
+      <a class="hero-btn hero-btn-primary" href="index.html">✦ Open App</a>
+      <a class="hero-btn hero-btn-ghost"   href="https://github.com/Sushegaad/Professional-Writing-Wizard" target="_blank" rel="noopener">📦 View on GitHub</a>
+    </div>
+  </div>
+
+  <!-- ═══ SYSTEM OVERVIEW ════════════════════════════════ -->
+  <section id="overview">
+    <div class="section-label">01 — System Overview</div>
+    <h2>Architecture at a Glance</h2>
+    <p class="section-desc">ClearVoice is a fully static, zero-backend web application. All AI inference is performed via direct browser-to-API calls. No server, no database, no telemetry.</p>
+
+    <div class="diagram">
+
+      <div class="diag-layer">
+        <div class="diag-layer-title">
+          <div class="diag-layer-dot" style="background:var(--cyan)"></div>
+          <span style="color:var(--cyan)">USER INTERFACE LAYER</span>
+          <span style="color:var(--t3);font-size:10px;font-weight:400;margin-left:4px;">— Browser / GitHub Pages</span>
+        </div>
+        <div class="diag-boxes">
+          <div class="diag-box">
+            <div class="diag-box-icon">📄</div>
+            <div class="diag-box-name">index.html</div>
+            <div class="diag-box-desc">DOM structure, layout, all UI markup</div>
+          </div>
+          <div class="diag-box">
+            <div class="diag-box-icon">🎨</div>
+            <div class="diag-box-name">css/styles.css</div>
+            <div class="diag-box-desc">Light/dark themes via CSS variables</div>
+          </div>
+          <div class="diag-box">
+            <div class="diag-box-icon">⚙</div>
+            <div class="diag-box-name">js/config.js</div>
+            <div class="diag-box-desc">Runtime config, API key injection point</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="diag-arrow">
+        <div class="arrow-line"></div>
+        <span>user action triggers</span>
+        <div class="arrow-line"></div>
+      </div>
+
+      <div class="diag-layer">
+        <div class="diag-layer-title">
+          <div class="diag-layer-dot" style="background:var(--blue)"></div>
+          <span style="color:var(--blue)">APPLICATION LOGIC LAYER</span>
+          <span style="color:var(--t3);font-size:10px;font-weight:400;margin-left:4px;">— Vanilla JS modules</span>
+        </div>
+        <div class="diag-boxes">
+          <div class="diag-box">
+            <div class="diag-box-icon">🧠</div>
+            <div class="diag-box-name">js/app.js</div>
+            <div class="diag-box-desc">State, settings, theme, matrix, orchestration</div>
+          </div>
+          <div class="diag-box">
+            <div class="diag-box-icon">🔌</div>
+            <div class="diag-box-name">js/api.js</div>
+            <div class="diag-box-desc">Prompt builder, Claude &amp; OpenAI callers</div>
+          </div>
+          <div class="diag-box">
+            <div class="diag-box-icon">🖼</div>
+            <div class="diag-box-name">js/ui.js</div>
+            <div class="diag-box-desc">DOM rendering: scores, insights, heatmap</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="diag-arrow">
+        <div class="arrow-line"></div>
+        <span>HTTPS fetch() — direct browser API call</span>
+        <div class="arrow-line"></div>
+      </div>
+
+      <div class="diag-layer">
+        <div class="diag-layer-title">
+          <div class="diag-layer-dot" style="background:var(--green)"></div>
+          <span style="color:var(--green)">AI PROVIDER LAYER</span>
+          <span style="color:var(--t3);font-size:10px;font-weight:400;margin-left:4px;">— External APIs</span>
+        </div>
+        <div class="diag-boxes">
+          <div class="diag-box" style="border-color:rgba(251,146,60,0.3);">
+            <div class="diag-box-icon">🟠</div>
+            <div class="diag-box-name">Anthropic Claude</div>
+            <div class="diag-box-desc">api.anthropic.com/v1/messages<br>Sonnet 4.5 / Opus 4.5 / Haiku 4.5</div>
+          </div>
+          <div class="diag-box" style="border-color:rgba(74,222,128,0.3);">
+            <div class="diag-box-icon">🟢</div>
+            <div class="diag-box-name">OpenAI GPT-4</div>
+            <div class="diag-box-desc">api.openai.com/v1/chat/completions<br>GPT-4o / GPT-4 Turbo / GPT-3.5</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ FILE STRUCTURE ══════════════════════════════════ -->
+  <section id="files">
+    <div class="section-label">02 — File Structure</div>
+    <h2>Repository Layout</h2>
+    <p class="section-desc">Clean separation of concerns: HTML for structure, one CSS file for all theming, three focused JS modules, and a GitHub Actions workflow for CI/CD.</p>
+
+    <div class="file-tree">
+<div class="ft-line"><span class="ft-root">Professional-Writing-Wizard/</span></div>
+<div class="ft-line"><span class="ft-indent">├── </span><span class="ft-key">index.html</span><span class="ft-desc">← Main application shell; all UI markup</span></div>
+<div class="ft-line"><span class="ft-indent">├── </span><span class="ft-key">architecture.html</span><span class="ft-desc">← This page; system design documentation</span></div>
+<div class="ft-line"><span class="ft-indent">├── </span><span class="ft-key">README.md</span><span class="ft-desc">← Setup, deployment, and usage guide</span></div>
+<div class="ft-line" style="margin-top:6px;"><span class="ft-indent">├── </span><span class="ft-dir">css/</span></div>
+<div class="ft-line"><span class="ft-indent">│   └── </span><span class="ft-key">styles.css</span><span class="ft-desc">← Full stylesheet; :root = light, body.dark = dark</span></div>
+<div class="ft-line" style="margin-top:6px;"><span class="ft-indent">├── </span><span class="ft-dir">js/</span></div>
+<div class="ft-line"><span class="ft-indent">│   ├── </span><span class="ft-key">config.js</span><span class="ft-desc">← window.CV_CONFIG; replaced by GitHub Actions</span></div>
+<div class="ft-line"><span class="ft-indent">│   ├── </span><span class="ft-key">api.js</span><span class="ft-desc">← buildSystemPrompt(), callClaude(), callOpenAI(), parseAIResponse()</span></div>
+<div class="ft-line"><span class="ft-indent">│   ├── </span><span class="ft-key">ui.js</span><span class="ft-desc">← renderResults(), renderScores(), buildHeatmap(), toast(), setLoading()</span></div>
+<div class="ft-line"><span class="ft-indent">│   └── </span><span class="ft-key">app.js</span><span class="ft-desc">← AppState, init(), theme, settings, matrix, runAnalysis()</span></div>
+<div class="ft-line" style="margin-top:6px;"><span class="ft-indent">└── </span><span class="ft-dir">.github/workflows/</span></div>
+<div class="ft-line"><span class="ft-indent">    └── </span><span class="ft-key">deploy.yml</span><span class="ft-desc">← GitHub Actions: inject secret → upload to Pages</span></div>
+    </div>
+
+    <div style="margin-top:28px;">
+      <div class="grid-4">
+        <div class="card">
+          <div style="font-size:22px;margin-bottom:8px;">📄</div>
+          <div style="font-size:13px;font-weight:800;margin-bottom:5px;">index.html</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.6;">Pure HTML structure with no inline scripts or styles. Loads CSS and the 4 JS files in dependency order.</div>
+        </div>
+        <div class="card">
+          <div style="font-size:22px;margin-bottom:8px;">🎨</div>
+          <div style="font-size:13px;font-weight:800;margin-bottom:5px;">styles.css</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.6;">All CSS variables in <code style="font-family:var(--mono);color:var(--cyan);">:root</code> for light mode. <code style="font-family:var(--mono);color:var(--cyan);">body.dark</code> overrides each variable.</div>
+        </div>
+        <div class="card">
+          <div style="font-size:22px;margin-bottom:8px;">⚙</div>
+          <div style="font-size:13px;font-weight:800;margin-bottom:5px;">config.js</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.6;">Sets <code style="font-family:var(--mono);color:var(--cyan);">window.CV_CONFIG</code>. Safe placeholder in Git; GitHub Actions regenerates it at build time with the real secret.</div>
+        </div>
+        <div class="card">
+          <div style="font-size:22px;margin-bottom:8px;">🤖</div>
+          <div style="font-size:13px;font-weight:800;margin-bottom:5px;">deploy.yml</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.6;">Uses Python's <code style="font-family:var(--mono);color:var(--cyan);">json.dumps()</code> for safe key injection, then deploys via the official GitHub Pages action.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ DATA FLOW ════════════════════════════════════════ -->
+  <section id="dataflow">
+    <div class="section-label">03 — Data Flow</div>
+    <h2>End-to-End Request Lifecycle</h2>
+    <p class="section-desc">From a user clicking "Analyze & Enhance" to rendered results — here is every step in the pipeline.</p>
+
+    <div class="flow-steps">
+
+      <div class="flow-step">
+        <div class="flow-num" style="border-color:var(--blue);color:var(--blue);">1</div>
+        <div class="flow-content">
+          <div class="flow-title">User configures Style Matrix</div>
+          <div class="flow-desc">The user selects Persona, Audience, Goal, Content Type, and positions the Vibe slider. All values are stored in <strong>AppState</strong> in <code>app.js</code> and read at analysis time.</div>
+          <div class="flow-tag" style="background:rgba(99,115,255,0.12);color:var(--blue);">app.js — AppState object</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-num" style="border-color:var(--cyan);color:var(--cyan);">2</div>
+        <div class="flow-content">
+          <div class="flow-title">runAnalysis() validates and dispatches</div>
+          <div class="flow-desc">Guards: checks for non-empty text and a configured API key. Creates a <em>state snapshot</em> (merges AppState + current select values), then calls the appropriate provider function.</div>
+          <div class="flow-tag" style="background:rgba(34,211,238,0.1);color:var(--cyan);">app.js → api.js</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-num" style="border-color:var(--purple);color:var(--purple);">3</div>
+        <div class="flow-content">
+          <div class="flow-title">buildSystemPrompt() constructs the instruction</div>
+          <div class="flow-desc">Maps all state values to human-readable strings and assembles a structured system prompt containing the writer's context, communication parameters, required JSON schema, and strict output rules.</div>
+          <div class="flow-code">system: `You are ClearVoice...
+CONTEXT:
+- Writer's Persona  : Individual Contributor
+- Target Audience   : Colleagues and Teammates
+- Communication Goal: Inform and update
+- Content Type      : Professional Email (BLUF)
+- Tone/Vibe (0–100) : 30 — concise and direct
+...EXACT REQUIRED JSON SCHEMA: { "variations": [...] }`</div>
+          <div class="flow-tag" style="background:rgba(167,139,250,0.1);color:var(--purple);">api.js — buildSystemPrompt()</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-num" style="border-color:var(--green);color:var(--green);">4</div>
+        <div class="flow-content">
+          <div class="flow-title">Direct browser HTTPS call to AI provider</div>
+          <div class="flow-desc">Claude uses the <code>anthropic-dangerous-direct-browser-access: true</code> header to allow CORS. OpenAI natively supports browser calls. Both return a JSON string in the message content.</div>
+          <div class="flow-tag" style="background:rgba(16,185,129,0.1);color:var(--green);">api.js — callClaude() / callOpenAI()</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-num" style="border-color:var(--yellow);color:var(--yellow);">5</div>
+        <div class="flow-content">
+          <div class="flow-title">parseAIResponse() normalises the output</div>
+          <div class="flow-desc">Strips any accidental markdown code fences (models occasionally wrap JSON in <code>```json</code>), then parses to a JavaScript object. Falls back to a regex extraction if direct parsing fails.</div>
+          <div class="flow-tag" style="background:rgba(245,158,11,0.1);color:var(--yellow);">api.js — parseAIResponse()</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-num" style="border-color:var(--pink);color:var(--pink);">6</div>
+        <div class="flow-content">
+          <div class="flow-title">renderResults() drives four UI updates</div>
+          <div class="flow-desc">
+            <strong>Variations</strong> — injects 3 full rewrites into their respective tab cards.<br>
+            <strong>Scores</strong> — creates SVG rings with CSS-transition animations.<br>
+            <strong>Insights</strong> — renders before/after coaching cards with category badges.<br>
+            <strong>Heatmap</strong> — on toggle, wraps tone-flagged phrases with colour-coded <code>&lt;span&gt;</code> elements.
+          </div>
+          <div class="flow-tag" style="background:rgba(244,114,182,0.1);color:var(--pink);">ui.js — renderResults(), renderScores(), renderInsights(), buildHeatmap()</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ JS MODULES ══════════════════════════════════════ -->
+  <section id="modules">
+    <div class="section-label">04 — JavaScript Modules</div>
+    <h2>Module Responsibilities</h2>
+    <p class="section-desc">Four vanilla JS files with a strict load order. No bundler, no framework — pure ES5-compatible globals for maximum portability on GitHub Pages.</p>
+
+    <div class="grid-2" style="margin-top:24px;">
+      <div class="module-card">
+        <div class="module-head">
+          <span class="module-icon">⚙</span>
+          <div>
+            <div class="module-name">Configuration</div>
+          </div>
+          <span class="module-file">js/config.js</span>
+        </div>
+        <div class="module-body">
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--cyan);">window.CV_CONFIG</span>
+            <span class="fn-desc">Global config object. Replaced at build time by GitHub Actions to inject API key from repository secrets.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="module-card">
+        <div class="module-head">
+          <span class="module-icon">🔌</span>
+          <div><div class="module-name">API Layer</div></div>
+          <span class="module-file">js/api.js</span>
+        </div>
+        <div class="module-body">
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--yellow);">buildSystemPrompt(state)</span>
+            <span class="fn-desc">Assembles multi-section system prompt from state parameters.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--orange);">callClaude(text, state, key)</span>
+            <span class="fn-desc">POST to Anthropic with browser-CORS header.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--green);">callOpenAI(text, state, key)</span>
+            <span class="fn-desc">POST to OpenAI with json_object response format.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--purple);">parseAIResponse(raw)</span>
+            <span class="fn-desc">JSON parse with code-fence stripping and regex fallback.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="module-card">
+        <div class="module-head">
+          <span class="module-icon">🖼</span>
+          <div><div class="module-name">UI Rendering</div></div>
+          <span class="module-file">js/ui.js</span>
+        </div>
+        <div class="module-body">
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--blue);">renderResults(result)</span>
+            <span class="fn-desc">Populates variations, triggers score/insight renders, opens coaching panel.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--blue);">renderScores(scores)</span>
+            <span class="fn-desc">Builds animated SVG ring cards; uses double-RAF for CSS transition.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--blue);">renderInsights(coaching)</span>
+            <span class="fn-desc">Renders before/after diff cards with category badge colouring.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--blue);">buildHeatmap(text, toneAnalysis)</span>
+            <span class="fn-desc">Sorts phrases longest-first to prevent nested span replacements, then wraps each in a typed highlight span.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--blue);">toast(msg, type)</span>
+            <span class="fn-desc">Self-dismissing notification with CSS slide + opacity animation.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--blue);">setLoading(on)</span>
+            <span class="fn-desc">Toggles loading overlay; cycles through 5 status messages every 2.4 s.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="module-card">
+        <div class="module-head">
+          <span class="module-icon">🧠</span>
+          <div><div class="module-name">App Logic</div></div>
+          <span class="module-file">js/app.js</span>
+        </div>
+        <div class="module-body">
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--pink);">AppState</span>
+            <span class="fn-desc">Single source of truth: provider, apiKey, model, goal, type, vibe, heatOn, result, busy.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--pink);">init() (IIFE)</span>
+            <span class="fn-desc">Priority merge: CV_CONFIG → localStorage → UI sync → open settings if no key.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--pink);">toggleTheme()</span>
+            <span class="fn-desc">Toggles body.dark class; persists preference to localStorage.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--pink);">runAnalysis()</span>
+            <span class="fn-desc">Validates, builds state snapshot, calls api.js, passes result to ui.js.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--pink);">acceptVar() / copyVar()</span>
+            <span class="fn-desc">Post-analysis actions on selected variation.</span>
+          </div>
+          <div class="module-fn">
+            <span class="fn-name" style="color:var(--pink);">exportInsights()</span>
+            <span class="fn-desc">Generates a formatted .txt report via Blob URL download.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CI/CD ════════════════════════════════════════════ -->
+  <section id="cicd">
+    <div class="section-label">05 — CI/CD Pipeline</div>
+    <h2>GitHub Actions Deployment</h2>
+    <p class="section-desc">A single workflow triggers on every push to <code style="font-family:var(--mono);color:var(--cyan);">main</code>. It injects the API key from repository secrets and deploys the site using the official GitHub Pages action.</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-step-icon">📦</div>
+        <div class="pipe-step-name">Checkout</div>
+        <div class="pipe-step-desc">actions/checkout@v4<br>Clone the repository</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step" style="border-color:rgba(245,158,11,0.3);">
+        <div class="pipe-step-icon">🔑</div>
+        <div class="pipe-step-name">Inject Secret</div>
+        <div class="pipe-step-desc">Python script uses json.dumps() to safely write API key into js/config.js</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-step-icon">📄</div>
+        <div class="pipe-step-name">Configure Pages</div>
+        <div class="pipe-step-desc">actions/configure-pages@v4<br>Set up the Pages environment</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-step-icon">🗜</div>
+        <div class="pipe-step-name">Upload Artifact</div>
+        <div class="pipe-step-desc">actions/upload-pages-artifact@v3<br>Package entire repo as artifact</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step" style="border-color:rgba(16,185,129,0.3);">
+        <div class="pipe-step-icon">🚀</div>
+        <div class="pipe-step-name">Deploy</div>
+        <div class="pipe-step-desc">actions/deploy-pages@v4<br>Publish to github.io URL</div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:18px 22px;">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);margin-bottom:10px;">⚠ Key Injection Detail</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7;">
+        Python's <code style="color:var(--cyan);">json.dumps()</code> is used (not shell string interpolation) to ensure the API key is safe regardless of special characters (<code>$</code>, <code>"</code>, <code>\</code>, etc.). The generated <code>js/config.js</code> is <strong>never committed</strong> to the main branch — it only exists in the deployed GitHub Pages artifact. The source repository always contains an empty placeholder.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECURITY ════════════════════════════════════════ -->
+  <section id="security">
+    <div class="section-label">06 — Security Model</div>
+    <h2>API Key Handling</h2>
+    <p class="section-desc">Because ClearVoice is a static site with no backend, all API communication is client-side. Here is an honest assessment of each configuration mode.</p>
+
+    <div class="security-grid">
+      <div class="sec-card" style="border-color:var(--green);">
+        <div class="sec-card-title"><span>🔒</span> <span style="color:var(--green)">Manual Entry (Recommended)</span></div>
+        <div class="sec-card-body">User enters API key via the Settings dialog. It is stored in <code>localStorage</code> and sent only to the AI provider. The key never leaves the browser, is never logged, and is not accessible to any third party.</div>
+      </div>
+      <div class="sec-card" style="border-color:var(--yellow);">
+        <div class="sec-card-title"><span>⚠</span> <span style="color:var(--yellow)">GitHub Actions Injection</span></div>
+        <div class="sec-card-body">The API key is injected at build time. It does not appear in the Git history, but it <em>does</em> exist in the deployed JavaScript file on GitHub Pages. Anyone who inspects the page source can read it. Use only for personal/private projects.</div>
+      </div>
+      <div class="sec-card" style="border-color:var(--blue);">
+        <div class="sec-card-title"><span>🌐</span> <span style="color:var(--blue)">No Data Retention</span></div>
+        <div class="sec-card-body">ClearVoice has no backend, no database, no analytics, and no telemetry. Written content is sent only to your chosen AI provider (Anthropic or OpenAI) in accordance with their privacy policies.</div>
+      </div>
+      <div class="sec-card" style="border-color:var(--purple);">
+        <div class="sec-card-title"><span>🔐</span> <span style="color:var(--purple)">Production Recommendation</span></div>
+        <div class="sec-card-body">For team or public deployments, implement a thin backend proxy (Cloudflare Workers, Netlify Functions, Vercel Edge) that holds the API key server-side and authenticates users before forwarding requests.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ TECH STACK ═══════════════════════════════════════ -->
+  <section>
+    <div class="section-label">07 — Technology Stack</div>
+    <h2>What It's Built With</h2>
+    <p class="section-desc">Intentionally zero-dependency. No Node.js, no npm, no bundler. Pure web standards with one Google Fonts import.</p>
+
+    <div class="tech-list">
+      <div class="tech-chip"><div class="tech-chip-dot" style="background:var(--orange)"></div> HTML5 — Semantic markup</div>
+      <div class="tech-chip"><div class="tech-chip-dot" style="background:var(--blue)"></div> CSS3 — Custom properties, Grid, Flexbox, animations</div>
+      <div class="tech-chip"><div class="tech-chip-dot" style="background:var(--yellow)"></div> Vanilla JS (ES2020) — fetch, async/await, Clipboard API</div>
+      <div class="tech-chip"><div class="tech-chip-dot" style="background:var(--orange)"></div> Anthropic Claude API — Direct browser access</div>
+      <div class="tech-chip"><div class="tech-chip-dot" style="background:var(--green)"></div> OpenAI GPT-4 API — json_object response format</div>
+      <div class="tech-chip"><div class="tech-chip-dot" style="background:var(--purple)"></div> GitHub Pages — Static hosting</div>
+      <div class="tech-chip"><div class="tech-chip-dot" style="background:var(--pink)"></div> GitHub Actions — CI/CD with secret injection</div>
+      <div class="tech-chip"><div class="tech-chip-dot" style="background:var(--cyan)"></div> Google Fonts (Inter) — Typography</div>
+      <div class="tech-chip"><div class="tech-chip-dot" style="background:var(--t3)"></div> localStorage — Theme + API key persistence</div>
+    </div>
+  </section>
+
+</div><!-- end .page -->
+
+<footer>
+  Built with ♥ by Hemant · <a href="index.html">← Open ClearVoice</a> · <a href="https://github.com/Sushegaad/Professional-Writing-Wizard" target="_blank" rel="noopener">GitHub</a>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClearVoice — AI Communication Coach</title>
+  <meta name="description" content="AI-powered writing coach with tone heatmap, 3-variation rewrites, and coaching insights. Powered by Claude or GPT-4.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SETTINGS MODAL
+     ═══════════════════════════════════════════════════════════ -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <div class="modal-title">⚙ API Configuration</div>
+    <div class="modal-sub">Your key is saved in your browser only and is sent directly to the AI provider — never to any third-party server.</div>
+
+    <div class="form-row">
+      <div class="form-lbl">AI Provider</div>
+      <div class="provider-row">
+        <button class="prov-btn active" id="btnClaude" onclick="pickProvider('claude')">🟠 Claude (Anthropic)</button>
+        <button class="prov-btn"        id="btnOpenAI" onclick="pickProvider('openai')">🟢 GPT-4 (OpenAI)</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-lbl" for="keyInp">API Key</label>
+      <input class="form-inp" id="keyInp" type="password" placeholder="sk-ant-api03-…" autocomplete="off">
+      <div class="form-hint" id="keyHint">Get your key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-lbl" for="modelSel">Model</label>
+      <select class="form-sel" id="modelSel">
+        <option value="claude-sonnet-4-5-20250929" selected>Claude Sonnet 4.5 — Recommended</option>
+        <option value="claude-opus-4-5-20251101">Claude Opus 4.5 — Most Capable</option>
+        <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 — Fastest</option>
+      </select>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveSettings()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER
+     ═══════════════════════════════════════════════════════════ -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark">✦</div>
+    <span class="logo-name">ClearVoice</span>
+    <span class="logo-tag">AI Coach</span>
+  </div>
+
+  <div class="header-right">
+    <div class="api-pill" onclick="openSettings()" title="API Settings">
+      <span class="dot" id="apiDot"></span>
+      <span id="apiLabel">Not configured — click to set up</span>
+    </div>
+    <button class="icon-btn" id="themeBtn"   onclick="toggleTheme()"  title="Toggle Dark / Light Mode">🌙</button>
+    <button class="icon-btn" id="settingsIconBtn" onclick="openSettings()" title="Settings">⚙</button>
+    <button class="icon-btn" onclick="resetAll()"    title="Clear All">↺</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     STYLE MATRIX BAR
+     ═══════════════════════════════════════════════════════════ -->
+<div class="matrix-bar">
+  <span class="matrix-label">Style Matrix</span>
+  <div class="mx-sep"></div>
+
+  <div class="mx-group">
+    <div class="mx-sublabel">Your Persona</div>
+    <select class="mx-sel" id="selPersona">
+      <option value="executive">C-Suite / Executive</option>
+      <option value="senior">Senior Manager / Lead</option>
+      <option value="ic" selected>Individual Contributor</option>
+      <option value="freelancer">Creative / Freelancer</option>
+      <option value="student">Student / Entry-Level</option>
+    </select>
+  </div>
+
+  <div class="mx-group">
+    <div class="mx-sublabel">Audience</div>
+    <select class="mx-sel" id="selAudience">
+      <option value="board">Board / C-Suite</option>
+      <option value="manager">Direct Manager</option>
+      <option value="peers" selected>Peers / Teammates</option>
+      <option value="reports">Direct Reports</option>
+      <option value="client">External Client</option>
+      <option value="cold">Cold Lead</option>
+      <option value="public">Public / Social</option>
+    </select>
+  </div>
+
+  <div class="mx-sep"></div>
+
+  <div class="mx-group">
+    <div class="mx-sublabel">Goal</div>
+    <div class="pill-group" id="goalGroup">
+      <button class="pill-btn active" data-v="inform"     onclick="pickPill(this,'goalGroup')">📢 Inform</button>
+      <button class="pill-btn"        data-v="request"    onclick="pickPill(this,'goalGroup')">🙏 Request</button>
+      <button class="pill-btn"        data-v="deescalate" onclick="pickPill(this,'goalGroup')">🕊 De-escalate</button>
+      <button class="pill-btn"        data-v="inspire"    onclick="pickPill(this,'goalGroup')">🚀 Inspire</button>
+    </div>
+  </div>
+
+  <div class="mx-sep"></div>
+
+  <div class="mx-group">
+    <div class="mx-sublabel">Content Type</div>
+    <div class="pill-group" id="typeGroup">
+      <button class="pill-btn active" data-v="email"     onclick="pickPill(this,'typeGroup')">📧 Email</button>
+      <button class="pill-btn"        data-v="social"    onclick="pickPill(this,'typeGroup')">📱 Social</button>
+      <button class="pill-btn"        data-v="exec"      onclick="pickPill(this,'typeGroup')">📊 Exec Summary</button>
+      <button class="pill-btn"        data-v="narrative" onclick="pickPill(this,'typeGroup')">📖 Narrative</button>
+      <button class="pill-btn"        data-v="general"   onclick="pickPill(this,'typeGroup')">✏ General</button>
+    </div>
+  </div>
+
+  <div class="mx-sep"></div>
+
+  <div class="mx-group vibe-wrap">
+    <div class="mx-sublabel">Vibe</div>
+    <div class="vibe-ends">
+      <span id="vibeL" class="vibe-end-active">⚡ Succinct</span>
+      <span id="vibeR">📖 Narrative</span>
+    </div>
+    <input type="range" class="vibe" id="vibeSlider" min="0" max="100" value="30" oninput="onVibe(this)">
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     WORKSPACE — SPLIT EDITOR
+     ═══════════════════════════════════════════════════════════ -->
+<div class="workspace">
+
+  <!-- ── INPUT PANE ─────────────────────────────────────── -->
+  <div class="pane pane-input">
+    <div class="pane-head">
+      <div class="pane-title">
+        <div class="status-dot" id="dotIn"></div>
+        Your Draft
+      </div>
+      <div class="pane-actions">
+        <span class="wc" id="wcBadge">0 words</span>
+        <button class="heat-toggle" id="heatBtn" onclick="toggleHeat()">
+          <span class="hdot"></span> Tone Map
+        </button>
+      </div>
+    </div>
+
+    <div class="pane-body">
+      <textarea class="draft" id="draftArea" oninput="onDraftInput()"
+        placeholder="Paste your draft here…
+
+Examples to try:
+• A work email you keep rewriting
+• A LinkedIn post that feels flat
+• A message to a difficult stakeholder
+• A report executive summary
+
+Configure your Style Matrix above, then click
+✦ Analyze &amp; Enhance  (or press Ctrl/⌘ + Enter)"></textarea>
+      <div class="heatmap-layer" id="heatLayer"></div>
+    </div>
+
+    <div class="pane-foot">
+      <div class="model-badge">
+        <span id="mbDot" style="width:6px;height:6px;border-radius:50%;background:var(--text-3);display:inline-block;transition:.2s;"></span>
+        <span id="mbText"></span>
+      </div>
+      <button class="btn btn-accent" id="analyzeBtn" onclick="runAnalysis()">
+        ✦ Analyze &amp; Enhance
+      </button>
+    </div>
+  </div>
+
+  <!-- ── OUTPUT PANE ────────────────────────────────────── -->
+  <div class="pane">
+    <div class="pane-head">
+      <div class="pane-title">
+        <div class="status-dot" id="dotOut"></div>
+        Enhanced Writing
+      </div>
+      <div class="pane-actions">
+        <div class="var-tabs" id="varTabs">
+          <button class="var-tab active" data-i="0" onclick="switchVar(this,0)">🤝 Negotiator</button>
+          <button class="var-tab"        data-i="1" onclick="switchVar(this,1)">🔭 Visionary</button>
+          <button class="var-tab"        data-i="2" onclick="switchVar(this,2)">⚡ Minimalist</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane-body" style="overflow:hidden;">
+      <!-- Loading overlay (scoped to output pane) -->
+      <div class="loading-mask" id="loadMask">
+        <div class="spinner"></div>
+        <div class="loading-msg" id="loadMsg">Analyzing your writing…</div>
+      </div>
+
+      <!-- Empty state (initial) -->
+      <div class="empty" id="emptyState" style="height:100%;">
+        <div class="empty-icon">✦</div>
+        <h3>Ready to Elevate Your Writing</h3>
+        <p>Set your Style Matrix above, paste your draft on the left, then click "Analyze & Enhance."</p>
+      </div>
+
+      <!-- Results container (shown after analysis) -->
+      <div id="outScroll" style="display:none;">
+        <div class="var-card show" id="vc0">
+          <div class="var-card-head">
+            <div class="var-card-name">🤝 The Negotiator</div>
+            <div class="var-card-tag">Persuasive, empathetic, and strategically warm</div>
+          </div>
+          <div class="var-text" id="vt0"></div>
+        </div>
+        <div class="var-card" id="vc1">
+          <div class="var-card-head">
+            <div class="var-card-name">🔭 The Visionary</div>
+            <div class="var-card-tag">Bold, inspiring, and forward-thinking</div>
+          </div>
+          <div class="var-text" id="vt1"></div>
+        </div>
+        <div class="var-card" id="vc2">
+          <div class="var-card-head">
+            <div class="var-card-name">⚡ The Minimalist</div>
+            <div class="var-card-tag">Direct, efficient, respects the reader's time</div>
+          </div>
+          <div class="var-text" id="vt2"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane-foot" id="outFoot" style="display:none;">
+      <div style="display:flex;gap:7px;">
+        <button class="btn btn-ghost" onclick="copyVar()">📋 Copy</button>
+        <button class="btn btn-ghost" onclick="exportInsights()">📥 Export Report</button>
+      </div>
+      <button class="btn btn-accent" onclick="acceptVar()">✓ Accept Version</button>
+    </div>
+  </div>
+</div><!-- end .workspace -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEATMAP LEGEND (shown only when Tone Map is active)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="heat-legend" id="heatLegend">
+  <span class="hl-title">Tone Map</span>
+  <div class="hl-item"><div class="hl-dot" style="background:var(--ht-agg-bd);opacity:.6;"></div> Aggressive</div>
+  <div class="hl-item"><div class="hl-dot" style="background:var(--ht-pas-bd);opacity:.6;"></div> Too Passive</div>
+  <div class="hl-item"><div class="hl-dot" style="background:var(--ht-waf-bd);opacity:.6;"></div> Waffle / Hedge</div>
+  <div class="hl-item"><div class="hl-dot" style="background:var(--ht-jar-bd);opacity:.6;"></div> Jargon</div>
+  <div class="hl-item"><div class="hl-dot" style="background:var(--ht-vag-bd);opacity:.6;"></div> Vague</div>
+  <div class="hl-item"><div class="hl-dot" style="background:var(--ht-str-bd);opacity:.6;"></div> ✓ Strong</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     COACHING / WHY PANEL
+     ═══════════════════════════════════════════════════════════ -->
+<div class="why-panel" id="whyPanel">
+  <div class="why-head" onclick="toggleWhy()">
+    <div class="why-head-left">
+      <div class="why-title">🎓 Coaching Insights</div>
+      <div class="why-badge" id="whyBadge">0 insights</div>
+    </div>
+    <div class="why-head-right">
+      <div class="score-preview" id="scorePreview"></div>
+      <div class="why-arrow">▼</div>
+    </div>
+  </div>
+  <div class="why-body">
+    <div class="scores-row"  id="scoresRow"></div>
+    <div class="insights"    id="insightsList">
+      <div class="empty-insights">Run an analysis to see coaching insights.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOAST NOTIFICATIONS
+     ═══════════════════════════════════════════════════════════ -->
+<div class="toast-zone" id="toastZone"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS  (load order matters: config → api → ui → app)
+     ═══════════════════════════════════════════════════════════ -->
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
