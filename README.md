@@ -2,7 +2,12 @@
 
 **A zero-backend AI writing coach** that rewrites your professional content across three styles, provides tone heatmaps, and explains every change with coaching insights.
 
-**Live demo:** `https://sushegaad.github.io/Professional-Writing-Wizard/`
+**Live demo:** https://sushegaad.github.io/Professional-Writing-Wizard/
+
+---
+
+![ClearVoice Coaching Insights](ClearVoice%20Coaching%20Insights.png)
+
 ---
 
 ## Features
@@ -12,6 +17,7 @@
 - **Tone Heatmap** — Colour-coded overlay on your original text flagging aggressive, passive, waffle, jargon, vague, and strong phrases with hover tooltips
 - **Coaching Panel** — Animated score rings (Clarity, Confidence, Professionalism, Impact) plus before/after insight cards explaining every change
 - **Dual Provider** — Works with both Claude (Anthropic) and GPT-4 (OpenAI)
+- **Resizable Panes** — Drag the centre divider to adjust the editor/output split; double-click to reset to 50/50
 - **Light / Dark Mode** — Light theme by default with a toggle; preference saved locally
 - **Accept / Copy / Export** — Accept a variation back into the editor, copy to clipboard, or export a full text report
 
@@ -48,9 +54,9 @@ This method bakes your key into the deployed JavaScript at build time. The key w
 
 Go to repo → **Settings → Pages** → Source: **GitHub Actions**
 
-**Step 2 — Add your API key as a Secret**
+**Step 2 — Add your API key as a Repository Secret**
 
-1. Go to **Settings → Secrets and variables → Actions**
+1. Go to **Settings → Secrets and variables → Repository secrets**
 2. Click **New repository secret**
 3. Name: `CLEARVOICE_API_KEY` · Value: your Anthropic API key (`sk-ant-api03-…`)
 

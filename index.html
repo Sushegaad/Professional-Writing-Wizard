@@ -144,7 +144,7 @@
 <div class="workspace">
 
   <!-- ── INPUT PANE ─────────────────────────────────────── -->
-  <div class="pane pane-input">
+  <div class="pane pane-input" id="inputPane">
     <div class="pane-head">
       <div class="pane-title">
         <div class="status-dot" id="dotIn"></div>
@@ -184,8 +184,13 @@ Configure your Style Matrix above, then click
     </div>
   </div>
 
+  <!-- ── DRAG DIVIDER ──────────────────────────────────── -->
+  <div class="pane-divider" id="paneDivider" title="Drag to resize panes">
+    <div class="pane-divider-handle"></div>
+  </div>
+
   <!-- ── OUTPUT PANE ────────────────────────────────────── -->
-  <div class="pane">
+  <div class="pane" id="outputPane">
     <div class="pane-head">
       <div class="pane-title">
         <div class="status-dot" id="dotOut"></div>
@@ -297,6 +302,68 @@ Configure your Style Matrix above, then click
 <script src="js/api.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANE RESIZER — drag the centre divider to adjust split
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  const divider   = document.getElementById('paneDivider');
+  const inputPane = document.getElementById('inputPane');
+  const workspace = divider.parentElement;
+  let dragging = false, startX = 0, startW = 0;
+
+  divider.addEventListener('mousedown', function (e) {
+    dragging = true;
+    startX   = e.clientX;
+    startW   = inputPane.getBoundingClientRect().width;
+    document.body.style.cursor    = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function (e) {
+    if (!dragging) return;
+    const totalW = workspace.getBoundingClientRect().width;
+    const delta  = e.clientX - startX;
+    const newW   = Math.min(Math.max(startW + delta, 280), totalW - 280);
+    inputPane.style.flex = 'none';
+    inputPane.style.width = newW + 'px';
+  });
+
+  document.addEventListener('mouseup', function () {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.cursor     = '';
+    document.body.style.userSelect = '';
+  });
+
+  // Touch support
+  divider.addEventListener('touchstart', function (e) {
+    dragging = true;
+    startX   = e.touches[0].clientX;
+    startW   = inputPane.getBoundingClientRect().width;
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchmove', function (e) {
+    if (!dragging) return;
+    const totalW = workspace.getBoundingClientRect().width;
+    const delta  = e.touches[0].clientX - startX;
+    const newW   = Math.min(Math.max(startW + delta, 280), totalW - 280);
+    inputPane.style.flex  = 'none';
+    inputPane.style.width = newW + 'px';
+  }, { passive: false });
+
+  document.addEventListener('touchend', function () { dragging = false; });
+
+  // Double-click resets to 50/50
+  divider.addEventListener('dblclick', function () {
+    inputPane.style.flex  = '1';
+    inputPane.style.width = '';
+  });
+})();
+</script>
 
 </body>
 </html>
