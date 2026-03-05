@@ -109,4 +109,4 @@ MIT — free to use, modify, and deploy.
 
 ---
 
-*Built with Claude Sonnet 4.5 · Powered by the Anthropic API*
+*Built by Hemant Naik · Powered by Claude Sonnet 4.5 *
