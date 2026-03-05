@@ -1,8 +1,9 @@
-# ✦ ClearVoice — AI Communication Coach
+# ✦ ClearVoice — AI Professional Writing Wizard
 
 **A zero-backend AI writing coach** that rewrites your professional content across three styles, provides tone heatmaps, and explains every change with coaching insights.
 
 **Live demo:** `https://sushegaad.github.io/Professional-Writing-Wizard/`
+
 **Architecture:** [View system design →](architecture.html)
 
 ---
@@ -77,59 +78,6 @@ Check progress under your repo's **Actions** tab.
 
 ---
 
-## Getting an API Key
-
-| Provider  | Where to get it              | Pricing       |
-|-----------|------------------------------|---------------|
-| Anthropic | https://console.anthropic.com | Pay-per-token |
-| OpenAI    | https://platform.openai.com   | Pay-per-token |
-
-Both offer free trial credits. **Claude Sonnet 4.5** is recommended for the best quality/cost balance.
-
----
-
-## File Structure
-
-```
-Professional-Writing-Wizard/
-├── index.html              ← App shell (all HTML markup)
-├── architecture.html       ← Visual system design documentation
-├── README.md               ← This file
-│
-├── css/
-│   └── styles.css          ← All styles; light default, body.dark for dark mode
-│
-├── js/
-│   ├── config.js           ← window.CV_CONFIG placeholder (replaced by CI)
-│   ├── api.js              ← Prompt builder, callClaude(), callOpenAI()
-│   ├── ui.js               ← renderResults(), scores, heatmap, toasts
-│   └── app.js              ← AppState, init, theme, settings, runAnalysis()
-│
-└── .github/workflows/
-    └── deploy.yml          ← Injects secret → deploys to GitHub Pages
-```
-
-Script load order (defined in `index.html`): `config.js → api.js → ui.js → app.js`
-
----
-
-## Theming
-
-The site defaults to **Light Mode**. Click 🌙 in the header to switch to Dark Mode. Preference is saved in `localStorage`.
-
-All colours reference CSS custom properties. `:root { ... }` defines the light palette; `body.dark { ... }` overrides every token — zero hard-coded colours in component styles.
-
----
-
-## Keyboard Shortcuts
-
-| Shortcut         | Action         |
-|------------------|----------------|
-| `Ctrl / ⌘ + Enter` | Run analysis  |
-| `Escape`           | Close Settings |
-
----
-
 ## Architecture
 
 See **[architecture.html](architecture.html)** for a visual deep-dive including:
@@ -149,16 +97,6 @@ See **[architecture.html](architecture.html)** for a visual deep-dive including:
 - **GitHub Actions mode**: The key is injected into the deployed JS artifact. It is not in Git history but is readable in page source. Suitable for personal use only.
 - **No telemetry**: No backend, no tracking, no analytics.
 - **Production recommendation**: For shared/team deployments, front the API with a server-side proxy (Cloudflare Workers, Netlify Functions, Vercel Edge, etc.).
-
----
-
-## Customisation
-
-**Change the default model** — update the `selected` attribute in `<select id="modelSel">` in `index.html`.
-
-**Change the default vibe** — set `vibe: 30` in `AppState` in `js/app.js` and `value="30"` on `<input id="vibeSlider">` in `index.html`.
-
-**Add a new content type** — add a button to `#typeGroup` in `index.html` and a template string to the `types` object in `buildSystemPrompt()` in `js/api.js`.
 
 ---
 
