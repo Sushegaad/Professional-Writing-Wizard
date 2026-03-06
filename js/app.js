@@ -238,12 +238,14 @@ function toggleHeat() {
       document.getElementById('draftArea').value,
       AppState.result.toneAnalysis
     );
-    ta.style.display = 'none';
+    ta.style.display   = 'none';
+    layer.style.display = 'block';
     layer.classList.add('on');
     btn.classList.add('active');
     legend.classList.add('on');
   } else {
-    ta.style.display = 'block';
+    ta.style.display    = '';
+    layer.style.display = 'none';
     layer.classList.remove('on');
     btn.classList.remove('active');
     legend.classList.remove('on');
@@ -308,6 +310,13 @@ async function runAnalysis() {
     AppState.result = parseAIResponse(raw);
     renderResults(AppState.result);
     switchVar(document.querySelector('.var-tab[data-i="0"]'), 0);
+
+    // Auto-enable Tone Map after each analysis
+    if (AppState.result?.toneAnalysis?.length) {
+      AppState.heatOn = false;   // reset so toggleHeat() switches it ON cleanly
+      toggleHeat();
+    }
+
     toast('Analysis complete!', 'ok');
 
     // ── Usage gate: nudge visitors to add their own key after USAGE_GATE runs ──
