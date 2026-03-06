@@ -60,10 +60,14 @@
   </div>
 
   <div class="header-right">
+    <span class="usage-counter" id="usageCounter" title="Analyses run on shared key">✦ <span id="usageCount">0</span>/50 uses</span>
     <div class="api-pill" onclick="openSettings()" title="API Settings">
       <span class="dot" id="apiDot"></span>
       <span id="apiLabel">Not configured — click to set up</span>
     </div>
+    <a  class="icon-btn" href="https://github.com/Sushegaad/Professional-Writing-Wizard"
+        target="_blank" rel="noopener" title="View source on GitHub"
+        style="text-decoration:none;font-size:16px;">⊞</a>
     <button class="icon-btn" id="themeBtn"   onclick="toggleTheme()"  title="Toggle Dark / Light Mode">🌙</button>
     <button class="icon-btn" id="settingsIconBtn" onclick="openSettings()" title="Settings">⚙</button>
     <button class="icon-btn" onclick="resetAll()"    title="Clear All">↺</button>
@@ -174,9 +178,16 @@ Configure your Style Matrix above, then click
     </div>
 
     <div class="pane-foot">
-      <div class="model-badge">
-        <span id="mbDot" style="width:6px;height:6px;border-radius:50%;background:var(--text-3);display:inline-block;transition:.2s;"></span>
-        <span id="mbText"></span>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div class="model-badge">
+          <span id="mbDot" style="width:6px;height:6px;border-radius:50%;background:var(--text-3);display:inline-block;transition:.2s;"></span>
+          <span id="mbText"></span>
+        </div>
+        <div class="pii-row">
+          <input type="checkbox" id="piiToggle" onchange="onPiiToggle()">
+          <label for="piiToggle">Redact PII before sending</label>
+          <span class="pii-badge" id="piiBadge" style="display:none;"></span>
+        </div>
       </div>
       <button class="btn btn-accent" id="analyzeBtn" onclick="runAnalysis()">
         ✦ Analyze &amp; Enhance
@@ -296,71 +307,80 @@ Configure your Style Matrix above, then click
 <div class="toast-zone" id="toastZone"></div>
 
 <!-- ═══════════════════════════════════════════════════════════
-     SCRIPTS  (load order matters: config → api → ui → app)
+     SCRIPTS  (load order matters: config → privacy → api → ui → app)
      ═══════════════════════════════════════════════════════════ -->
 <script src="js/config.js"></script>
+<script src="js/privacy.js"></script>
 <script src="js/api.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
 
 <!-- ═══════════════════════════════════════════════════════════
-     PANE RESIZER — drag the centre divider to adjust split
+     PANE RESIZER — drag the horizontal divider to adjust split
      ═══════════════════════════════════════════════════════════ -->
 <script>
 (function () {
   const divider   = document.getElementById('paneDivider');
   const inputPane = document.getElementById('inputPane');
   const workspace = divider.parentElement;
-  let dragging = false, startX = 0, startW = 0;
+  let dragging = false, startY = 0, startH = 0;
+
+  function clamp(h, total) {
+    return Math.min(Math.max(h, 120), total - 120);
+  }
 
   divider.addEventListener('mousedown', function (e) {
     dragging = true;
-    startX   = e.clientX;
-    startW   = inputPane.getBoundingClientRect().width;
-    document.body.style.cursor    = 'col-resize';
+    startY   = e.clientY;
+    startH   = inputPane.getBoundingClientRect().height;
+    document.body.style.cursor    = 'row-resize';
     document.body.style.userSelect = 'none';
+    divider.classList.add('dragging');
     e.preventDefault();
   });
 
   document.addEventListener('mousemove', function (e) {
     if (!dragging) return;
-    const totalW = workspace.getBoundingClientRect().width;
-    const delta  = e.clientX - startX;
-    const newW   = Math.min(Math.max(startW + delta, 280), totalW - 280);
-    inputPane.style.flex = 'none';
-    inputPane.style.width = newW + 'px';
+    const totalH = workspace.getBoundingClientRect().height;
+    const newH   = clamp(startH + (e.clientY - startY), totalH);
+    inputPane.style.flex   = 'none';
+    inputPane.style.height = newH + 'px';
   });
 
   document.addEventListener('mouseup', function () {
     if (!dragging) return;
     dragging = false;
-    document.body.style.cursor     = '';
+    document.body.style.cursor    = '';
     document.body.style.userSelect = '';
+    divider.classList.remove('dragging');
   });
 
   // Touch support
   divider.addEventListener('touchstart', function (e) {
     dragging = true;
-    startX   = e.touches[0].clientX;
-    startW   = inputPane.getBoundingClientRect().width;
+    startY   = e.touches[0].clientY;
+    startH   = inputPane.getBoundingClientRect().height;
+    divider.classList.add('dragging');
     e.preventDefault();
   }, { passive: false });
 
   document.addEventListener('touchmove', function (e) {
     if (!dragging) return;
-    const totalW = workspace.getBoundingClientRect().width;
-    const delta  = e.touches[0].clientX - startX;
-    const newW   = Math.min(Math.max(startW + delta, 280), totalW - 280);
-    inputPane.style.flex  = 'none';
-    inputPane.style.width = newW + 'px';
+    const totalH = workspace.getBoundingClientRect().height;
+    const newH   = clamp(startH + (e.touches[0].clientY - startY), totalH);
+    inputPane.style.flex   = 'none';
+    inputPane.style.height = newH + 'px';
   }, { passive: false });
 
-  document.addEventListener('touchend', function () { dragging = false; });
+  document.addEventListener('touchend', function () {
+    dragging = false;
+    divider.classList.remove('dragging');
+  });
 
   // Double-click resets to 50/50
   divider.addEventListener('dblclick', function () {
-    inputPane.style.flex  = '1';
-    inputPane.style.width = '';
+    inputPane.style.flex   = '1';
+    inputPane.style.height = '';
   });
 })();
 </script>

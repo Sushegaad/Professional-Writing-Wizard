@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClearVoice — Test Suite</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Menlo', 'Consolas', 'Courier New', monospace;
+      background: #0D1117; color: #E8EAED;
+      padding: 32px 24px; min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1 {
+      font-size: 20px; font-weight: 700; color: #6373FF;
+      margin-bottom: 6px; letter-spacing: -.3px;
+    }
+    .meta { font-size: 12px; color: #4E5670; margin-bottom: 28px; }
+
+    /* Suite container */
+    .suite { margin-bottom: 22px; }
+    .suite-name {
+      font-size: 13px; font-weight: 700; color: #9AA3B5;
+      padding: 6px 0; border-bottom: 1px solid #242840; margin-bottom: 6px;
+      letter-spacing: .3px;
+    }
+
+    /* Individual test row */
+    .test { display: flex; align-items: flex-start; gap: 10px; padding: 5px 0; }
+    .icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+    .test-name { font-size: 13px; flex: 1; }
+    .pass .test-name { color: #10B981; }
+    .fail .test-name { color: #EF4444; }
+    .skip .test-name { color: #4E5670; font-style: italic; }
+
+    .err-msg {
+      font-size: 11px; color: #F59E0B; background: rgba(245,158,11,.08);
+      border: 1px solid rgba(245,158,11,.25); border-radius: 5px;
+      padding: 6px 10px; margin: 3px 0 3px 23px; white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Summary bar */
+    #summary {
+      position: sticky; bottom: 0; background: #0D1117;
+      border-top: 1px solid #242840; padding: 14px 0 0;
+      margin-top: 16px; font-size: 13px;
+    }
+    #summary .bar {
+      height: 4px; border-radius: 2px; margin-bottom: 10px;
+      background: linear-gradient(to right, #10B981 var(--pass), #EF4444 var(--pass));
+    }
+    #summary .counts { display: flex; gap: 22px; }
+    .cnt-pass { color: #10B981; font-weight: 700; }
+    .cnt-fail { color: #EF4444; font-weight: 700; }
+    .cnt-total { color: #9AA3B5; }
+    .cnt-time  { color: #4E5670; margin-left: auto; }
+
+    #run-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #6373FF; color: white; border: none; border-radius: 8px;
+      font-family: inherit; font-size: 13px; font-weight: 700;
+      padding: 8px 18px; cursor: pointer; margin-bottom: 24px;
+      transition: background .18s;
+    }
+    #run-btn:hover { background: #7585FF; }
+    #run-btn:disabled { opacity: .5; cursor: wait; }
+  </style>
+</head>
+<body>
+
+<h1>✦ ClearVoice — Test Suite</h1>
+<p class="meta">Loads all source modules and runs unit tests in the browser. No build step required.</p>
+
+<button id="run-btn" onclick="runAll()">▶ Run All Tests</button>
+
+<div id="output"></div>
+
+<div id="summary" style="display:none;">
+  <div class="bar" id="bar"></div>
+  <div class="counts">
+    <span class="cnt-pass" id="cntPass">— passed</span>
+    <span class="cnt-fail" id="cntFail">— failed</span>
+    <span class="cnt-total" id="cntTotal"></span>
+    <span class="cnt-time"  id="cntTime"></span>
+  </div>
+</div>
+
+<!-- ── Source modules (same load order as the main app) ──── -->
+<script src="../js/config.js"></script>
+<script src="../js/privacy.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/ui.js"></script>
+<script>
+// ── Minimal stubs so app.js doesn't crash without the full DOM ──
+window.CV_CONFIG   = window.CV_CONFIG || { apiKey: '', provider: 'claude', model: 'claude-sonnet-4-5-20250929' };
+window.AppState    = window.AppState  || { heatOn: false };
+// Stub DOM elements that app.js reads on init
+const _stub = (id) => { const d = document.createElement('div'); d.id = id; document.body.appendChild(d); return d; };
+['apiDot','apiLabel','mbDot','mbText','themeBtn','vibeSlider','vibeL','vibeR',
+ 'usageCounter','usageCount','settingsModalTitle','settingsModalSub'].forEach(_stub);
+</script>
+<script src="../js/app.js"></script>
+<script src="test-privacy.js"></script>
+<script src="test-core.js"></script>
+
+<!-- ── Test Framework ────────────────────────────────────── -->
+<script>
+// ── Minimal test runner ──────────────────────────────────────
+const _suites  = [];
+let   _current = null;
+
+function suite(name, fn) {
+  _current = { name, tests: [] };
+  _suites.push(_current);
+  try { fn(); } catch (e) { console.error('Suite setup error:', e); }
+  _current = null;
+}
+
+function test(name, fn) {
+  if (!_current) return;
+  _current.tests.push({ name, fn });
+}
+
+function assert(condition, msg) {
+  if (!condition) throw new Error(msg || 'Assertion failed');
+}
+
+async function runAll() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Running…';
+
+  const out = document.getElementById('output');
+  out.innerHTML = '';
+
+  let passed = 0, failed = 0;
+  const t0 = performance.now();
+
+  for (const s of _suites) {
+    const suiteDiv = document.createElement('div');
+    suiteDiv.className = 'suite';
+    suiteDiv.innerHTML = `<div class="suite-name">${s.name}</div>`;
+
+    for (const t of s.tests) {
+      const row = document.createElement('div');
+      row.className = 'test';
+
+      try {
+        await t.fn();
+        row.classList.add('pass');
+        row.innerHTML = `<span class="icon">✓</span><span class="test-name">${t.name}</span>`;
+        passed++;
+      } catch (e) {
+        row.classList.add('fail');
+        row.innerHTML = `
+          <span class="icon">✗</span>
+          <div style="flex:1">
+            <div class="test-name">${t.name}</div>
+            <div class="err-msg">${e.message}</div>
+          </div>`;
+        failed++;
+      }
+
+      suiteDiv.appendChild(row);
+    }
+    out.appendChild(suiteDiv);
+  }
+
+  const elapsed = (performance.now() - t0).toFixed(0);
+  const total   = passed + failed;
+  const pct     = total ? Math.round((passed / total) * 100) : 0;
+
+  document.getElementById('bar').style.setProperty('--pass', pct + '%');
+  document.getElementById('cntPass').textContent  = `${passed} passed`;
+  document.getElementById('cntFail').textContent  = `${failed} failed`;
+  document.getElementById('cntTotal').textContent = `${total} total`;
+  document.getElementById('cntTime').textContent  = `${elapsed} ms`;
+  document.getElementById('summary').style.display = 'block';
+
+  btn.disabled    = false;
+  btn.textContent = '↺ Re-run All Tests';
+}
+
+// Auto-run on load
+window.addEventListener('DOMContentLoaded', () => setTimeout(runAll, 120));
+</script>
+
+</body>
+</html>

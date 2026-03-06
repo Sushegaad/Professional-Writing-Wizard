@@ -159,10 +159,13 @@ function renderInsights(coaching) {
     return;
   }
 
-  list.innerHTML = coaching.map(c => {
-    const cat = c.category || 'clarity';
+  list.innerHTML = coaching.map((c, idx) => {
+    const cat       = c.category || 'clarity';
+    const hasApply  = !!(c.original && c.improved);
+    const origAttr  = hasApply ? ` data-original="${xEsc(c.original)}"` : '';
+    const imprvAttr = hasApply ? ` data-improved="${xEsc(c.improved)}"` : '';
     return `
-      <div class="insight">
+      <div class="insight" id="insight-${idx}">
         <span class="cat-badge cat-${cat}">${cat}</span>
         <div class="insight-body">
           <div class="insight-diff">
@@ -171,6 +174,10 @@ function renderInsights(coaching) {
             ${c.improved ? `<span class="diff-after">${xEsc(c.improved)}</span>` : ''}
           </div>
           <div class="insight-reason">${xEsc(c.reason || '')}</div>
+          <div class="insight-actions">
+            ${hasApply ? `<button class="ins-btn ins-accept" onclick="acceptInsight(this)"${origAttr}${imprvAttr}>✓ Apply</button>` : ''}
+            <button class="ins-btn ins-decline" onclick="declineInsight(this)">✗ Dismiss</button>
+          </div>
         </div>
       </div>`;
   }).join('');

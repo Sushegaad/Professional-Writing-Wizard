@@ -23,11 +23,28 @@ const AppState = {
 };
 
 // ── Usage Gating (show Settings after USAGE_GATE runs on injected key) ──
-const USAGE_GATE = 10;
+const USAGE_GATE = 50;
 
 function getRunCount()     { return parseInt(localStorage.getItem('cv_run_count') || '0', 10); }
-function bumpRunCount()    { localStorage.setItem('cv_run_count', getRunCount() + 1); }
+function bumpRunCount()    { localStorage.setItem('cv_run_count', getRunCount() + 1); refreshUsageCounter(); }
 function hasPersonalKey()  { try { return !!JSON.parse(localStorage.getItem('cv_cfg') || '{}').apiKey; } catch(_){ return false; } }
+
+function refreshUsageCounter() {
+  const el = document.getElementById('usageCounter');
+  const ct = document.getElementById('usageCount');
+  if (!el || !ct) return;
+  if (AppState._injectedKeyOnly) {
+    const n = getRunCount();
+    ct.textContent = n;
+    el.classList.add('show');
+    // Colour the counter as it approaches the gate
+    const ratio = n / USAGE_GATE;
+    el.style.color       = ratio >= 0.8 ? 'var(--yellow)' : 'var(--text-3)';
+    el.style.borderColor = ratio >= 0.8 ? 'var(--yellow)' : 'var(--border)';
+  } else {
+    el.classList.remove('show');
+  }
+}
 
 // ── Initialisation ───────────────────────────────────────────
 
@@ -59,6 +76,7 @@ function hasPersonalKey()  { try { return !!JSON.parse(localStorage.getItem('cv_
   // 4. Sync UI — no modal on load; visitors with the injected key just start writing
   refreshApiUI();
   syncVibe(AppState.vibe);
+  refreshUsageCounter();
 })();
 
 // ── Theme Toggle ─────────────────────────────────────────────
@@ -140,6 +158,7 @@ function saveSettings() {
   }));
 
   refreshApiUI();
+  refreshUsageCounter();
   closeSettings();
   toast('Settings saved — using your own API key!', 'ok');
 }
@@ -233,17 +252,42 @@ function toggleHeat() {
 
 // ── Analysis Orchestration ───────────────────────────────────
 
+// ── PII Toggle ───────────────────────────────────────────────
+function onPiiToggle() {
+  const badge = document.getElementById('piiBadge');
+  if (!badge) return;
+  if (document.getElementById('piiToggle').checked) {
+    badge.style.display = 'inline';
+    badge.textContent   = 'PII will be redacted';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
 async function runAnalysis() {
   if (AppState.busy) return;
 
-  const text = document.getElementById('draftArea').value.trim();
-  if (!text) { toast('Please paste some text first', 'err'); return; }
+  const rawText = document.getElementById('draftArea').value.trim();
+  if (!rawText) { toast('Please paste some text first', 'err'); return; }
 
   // No key at all — guide user to Settings (prompt every time)
   if (!AppState.apiKey) {
     toast('Add your API key in ⚙ Settings to get started', 'err');
     openSettings();
     return;
+  }
+
+  // ── PII Redaction ──────────────────────────────────────────
+  let text = rawText;
+  if (document.getElementById('piiToggle')?.checked) {
+    const { redacted, found } = PrivacyGuard.redact(rawText);
+    text = redacted;
+    if (PrivacyGuard.hasPII(found)) {
+      const summary = PrivacyGuard.summarise(found);
+      const badge   = document.getElementById('piiBadge');
+      if (badge) { badge.style.display = 'inline'; badge.textContent = `Redacted: ${summary}`; }
+      toast(`PII redacted — ${summary}`, 'ok');
+    }
   }
 
   AppState.busy = true;
@@ -289,6 +333,56 @@ async function runAnalysis() {
     AppState.busy = false;
     setLoading(false);
   }
+}
+
+// ── Coaching Insight Accept / Decline ───────────────────────
+
+/**
+ * Replaces the original phrase with the improved version in the draft.
+ * Called by the "Apply" button rendered in each insight card.
+ */
+function acceptInsight(btn) {
+  const original = btn.dataset.original;
+  const improved = btn.dataset.improved;
+  if (!original || !improved) return;
+
+  const ta = document.getElementById('draftArea');
+  if (!ta.value.includes(original)) {
+    toast('Phrase not found in current draft (may have already been changed)', 'err');
+    return;
+  }
+
+  ta.value = ta.value.replace(original, improved);
+  onDraftInput();
+  if (AppState.heatOn) toggleHeat();   // Rebuild heatmap with new text
+
+  // Mark the card as accepted
+  const card = btn.closest('.insight');
+  if (card) card.classList.add('insight-accepted');
+  btn.disabled    = true;
+  btn.textContent = '✓ Applied';
+
+  const snippet = improved.length > 45 ? improved.slice(0, 45) + '…' : improved;
+  toast(`Applied: "${snippet}"`, 'ok');
+}
+
+/**
+ * Animates and removes a dismissed insight card.
+ */
+function declineInsight(btn) {
+  const card = btn.closest('.insight');
+  if (!card) return;
+  card.style.transition = 'opacity .25s ease, transform .25s ease, max-height .3s ease';
+  card.style.maxHeight  = card.offsetHeight + 'px';
+  card.style.overflow   = 'hidden';
+  requestAnimationFrame(() => {
+    card.style.opacity   = '0';
+    card.style.transform = 'translateX(-8px)';
+    card.style.maxHeight = '0';
+    card.style.margin    = '0';
+    card.style.padding   = '0';
+  });
+  setTimeout(() => card.remove(), 320);
 }
 
 // ── Variation Controls ───────────────────────────────────────
