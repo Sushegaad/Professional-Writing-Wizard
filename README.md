@@ -7,7 +7,7 @@
 ---
 
 ![ClearVoice Coaching Insights](ClearVoice%20Coaching%20Insights.png)
-
+![ClearVoice Coaching Insights 01](ClearVoice%20Coaching%20Insights%2001.png)
 ---
 
 ## Features
@@ -94,32 +94,6 @@ git push origin main
 ```
 
 Check progress under your repo's **Actions** tab.
-
----
-
-## File Structure
-
-```
-Professional-Writing-Wizard/
-├── index.html                    # Main application shell
-├── css/
-│   └── styles.css                # Full stylesheet (light + dark, responsive)
-├── js/
-│   ├── config.js                 # Injected API config (overwritten at CI build time)
-│   ├── privacy.js                # PII redaction engine (Semantic Privacy Guard port)
-│   ├── api.js                    # AI provider calls (Claude + OpenAI), prompt builder
-│   ├── ui.js                     # Render functions (variations, heatmap, score rings, insights)
-│   └── app.js                    # State, event handlers, settings, usage gating
-├── tests/
-│   ├── index.html                # Browser test runner (auto-runs on load)
-│   ├── test-privacy.js           # 19 PII redaction unit tests
-│   └── test-core.js              # Core function tests (parseAIResponse, buildHeatmap, xEsc)
-├── architecture.html             # Interactive system design diagram
-├── .github/
-│   ├── workflows/deploy.yml      # GitHub Actions Pages deployment
-│   └── scripts/inject_config.py  # Safely injects API key into config.js at build time
-└── README.md
-```
 
 ---
 
