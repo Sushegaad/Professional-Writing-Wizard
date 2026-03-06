@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google-site-verification" content="ngS8wu36B4P3ZyQBK7Q8rlwMd53-rFN55y8IFsFVApw" />
   <title>ClearVoice — AI Communication Coach</title>
   <meta name="description" content="AI-powered writing coach with tone heatmap, 3-variation rewrites, and coaching insights. Powered by Claude or GPT-4.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -430,10 +431,12 @@ Configure your Style Matrix above, then click
 function toggleCoachPanel() {
   const panel   = document.getElementById('whyPanel');
   const btn     = document.getElementById('coachCollapseBtn');
-  const divider = document.getElementById('outputDivider');
   const collapsed = panel.classList.toggle('collapsed');
-  if (btn) { btn.textContent = collapsed ? '▶' : '◀'; btn.title = collapsed ? 'Expand coaching panel' : 'Collapse coaching panel'; }
-  if (divider) divider.style.display = collapsed ? 'none' : '';
+  if (btn) {
+    btn.textContent = collapsed ? '▶' : '◀';
+    btn.title = collapsed ? 'Expand coaching panel' : 'Collapse coaching panel';
+  }
+  // Keep divider visible so user can see the boundary of the collapsed strip
 }
 </script>
 

@@ -309,7 +309,7 @@ input[type=range].vibe::-webkit-slider-thumb:hover {
 textarea.draft {
   width: 100%; min-height: 42vh; resize: none; border: none; outline: none;
   background: var(--bg); color: var(--text-1);
-  font-family: inherit; font-size: 17px; line-height: 1.8; font-weight: 450;
+  font-family: inherit; font-size: 14px; line-height: 1.8; font-weight: 450;
   padding: 20px 24px; overflow-y: auto;
   /* fill parent flex container */
   flex: 1;
@@ -356,7 +356,7 @@ textarea.draft::placeholder { color: var(--text-3); line-height: 1.9; font-weigh
 .heatmap-layer {
   display: none;
   width: 100%; min-height: 42vh;
-  padding: 20px 24px; font-family: inherit; font-size: 17px; line-height: 1.8;
+  padding: 20px 24px; font-family: inherit; font-size: 14px; line-height: 1.8;
   color: var(--text-1); white-space: pre-wrap; word-wrap: break-word;
   background: var(--bg);
 }
@@ -439,7 +439,7 @@ textarea.draft::placeholder { color: var(--text-3); line-height: 1.9; font-weigh
 }
 .var-card-name { font-size: 14px; font-weight: 800; margin-bottom: 3px; }
 .var-card-tag  { font-size: 11px; color: var(--text-2); }
-.var-text      { font-size: 17px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; font-weight: 420; }
+.var-text      { font-size: 14px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; font-weight: 420; }
 
 /* ── Empty State ─────────────────────────────────────────── */
 .empty {
@@ -491,13 +491,32 @@ body.dark .loading-mask { background: rgba(12,14,20,0.85); }
   border-left: 1px solid var(--border);
 }
 
-/* Collapsed: zero width, invisible */
+/* Collapsed: narrow 32px strip — button stays visible for re-expanding */
 .pane-coaching.collapsed {
-  width: 0 !important;
-  border-left: none;
+  width: 32px !important;
+  border-left: 1px solid var(--border);
 }
 
-/* Collapse toggle button arrow direction */
+/* When collapsed, hide everything except the toggle button */
+.pane-coaching.collapsed .pane-title,
+.pane-coaching.collapsed #scorePreview,
+.pane-coaching.collapsed .why-body {
+  display: none !important;
+}
+.pane-coaching.collapsed .pane-head {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: none;
+  height: 100%;
+}
+.pane-coaching.collapsed .pane-actions {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Collapse/expand toggle button */
 .coach-collapse-btn { font-size: 11px; }
 
 /* Why-panel body — always visible (no open/close toggle needed) */
@@ -723,6 +742,20 @@ select.form-sel option { background: var(--surface); color: var(--text-1); }
   .pane-coaching.collapsed {
     width: 100% !important;
     height: 44px !important; /* show header only */
+    border-left: none;
+  }
+  /* On mobile, restore all header children when collapsed (height-based, not width-based) */
+  .pane-coaching.collapsed .pane-title,
+  .pane-coaching.collapsed #scorePreview {
+    display: flex !important;
+  }
+  .pane-coaching.collapsed .pane-head {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    height: auto;
+    border-bottom: 1px solid var(--border);
   }
 
   /* Show expand icon pointing down on mobile (panel stacks below) */
@@ -784,8 +817,8 @@ select.form-sel option { background: var(--surface); color: var(--text-1); }
 
   /* Input pane: min-height reduced for phone */
   .pane-input { min-height: 200px; }
-  textarea.draft { font-size: 15px; min-height: 160px; }
-  .heatmap-layer { font-size: 15px; min-height: 160px; }
+  textarea.draft { font-size: 13px; min-height: 160px; }
+  .heatmap-layer { font-size: 13px; min-height: 160px; }
 
   /* Pane head: tighter */
   .pane-head { padding: 8px 12px; }
@@ -814,7 +847,7 @@ select.form-sel option { background: var(--surface); color: var(--text-1); }
   .var-tab   { font-size: 9px; white-space: nowrap; }
 
   /* Output text: slightly smaller */
-  .var-text { font-size: 15px; }
+  .var-text { font-size: 13px; }
 
   /* Score cards: smaller */
   .score-card { min-width: 76px; padding: 8px 10px; }
