@@ -260,14 +260,19 @@ input[type=range].vibe::-webkit-slider-thumb:hover {
   box-shadow: 0 0 0 4px var(--acc-glow), 0 1px 4px rgba(0,0,0,0.2);
 }
 
-/* ── Workspace (vertical split — top/bottom panes) ──────── */
+/* ── Workspace (vertical: input on top, output-row below) ── */
 .workspace {
   display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: visible;
 }
 
+/* ── Output row (horizontal: enhanced writing + coaching) ── */
+.output-row {
+  display: flex; flex-direction: row; flex: 1; min-height: 45vh; overflow: hidden;
+}
+
 /* ── Pane ────────────────────────────────────────────────── */
-.pane { display: flex; flex-direction: column; flex: 1; min-height: 45vh; min-width: 0; overflow: visible; }
-.pane-input { border-bottom: 1px solid var(--border); }
+.pane { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; overflow: hidden; }
+.pane-input { min-height: 45vh; border-bottom: 1px solid var(--border); }
 
 .pane-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -311,7 +316,7 @@ textarea.draft {
 }
 textarea.draft::placeholder { color: var(--text-3); line-height: 1.9; font-weight: 400; }
 
-/* ── Pane Divider (horizontal drag-to-resize) ────────────── */
+/* ── Pane Divider — Y-axis (row-resize, input vs output-row) */
 .pane-divider {
   height: 6px; width: 100%; flex-shrink: 0; background: var(--border);
   cursor: row-resize; position: relative; z-index: 10;
@@ -328,6 +333,24 @@ textarea.draft::placeholder { color: var(--text-3); line-height: 1.9; font-weigh
 }
 .pane-divider:hover .pane-divider-handle,
 .pane-divider.dragging .pane-divider-handle { opacity: 1; background: white; }
+
+/* ── Pane Divider — X-axis (col-resize, writing vs coaching) */
+.pane-divider-x {
+  width: 6px; height: 100%; flex-shrink: 0; background: var(--border);
+  cursor: col-resize; position: relative; z-index: 10;
+  transition: background var(--t);
+  display: flex; align-items: center; justify-content: center;
+}
+.pane-divider-x:hover,
+.pane-divider-x.dragging { background: var(--accent); }
+
+.pane-divider-handle-x {
+  width: 2px; height: 40px; border-radius: 2px;
+  background: var(--text-3); opacity: 0.5;
+  pointer-events: none; transition: opacity var(--t);
+}
+.pane-divider-x:hover .pane-divider-handle-x,
+.pane-divider-x.dragging .pane-divider-handle-x { opacity: 1; background: white; }
 
 /* ── Heatmap Layer ───────────────────────────────────────── */
 .heatmap-layer {
@@ -405,7 +428,7 @@ textarea.draft::placeholder { color: var(--text-3); line-height: 1.9; font-weigh
 .var-tab.active { background: var(--acc-light); color: var(--accent); }
 
 /* ── Output Pane Content ─────────────────────────────────── */
-#outScroll { min-height: 42vh; overflow-y: auto; padding: 20px 24px; }
+#outScroll { overflow-y: auto; padding: 20px 24px; }
 
 .var-card       { display: none; }
 .var-card.show  { display: block; }
@@ -458,32 +481,41 @@ body.dark .loading-mask { background: rgba(12,14,20,0.85); }
 .hl-item   { display: flex; align-items: center; gap: 4px; color: var(--text-2); font-weight: 500; }
 .hl-dot    { width: 9px; height: 9px; border-radius: 2px; }
 
-/* ── Why / Coaching Panel ────────────────────────────────── */
-.why-panel {
-  border-top: 1px solid var(--border); background: var(--bg-alt); flex-shrink: 0;
-  box-shadow: 0 -1px 0 var(--border);
+/* ── Coaching Insights pane (side panel inside output-row) ── */
+.pane-coaching {
+  flex: none;          /* don't grow/shrink — output pane fills remaining space */
+  width: 340px;
+  min-width: 0;
+  overflow: hidden;
+  transition: width 0.22s cubic-bezier(.4,0,.2,1);
+  border-left: 1px solid var(--border);
 }
-.why-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 20px; cursor: pointer; user-select: none; transition: var(--t);
-}
-.why-head:hover { background: var(--s-hover); }
 
-.why-head-left  { display: flex; align-items: center; gap: 10px; }
-.why-title      { font-size: 12px; font-weight: 800; }
+/* Collapsed: zero width, invisible */
+.pane-coaching.collapsed {
+  width: 0 !important;
+  border-left: none;
+}
+
+/* Collapse toggle button arrow direction */
+.coach-collapse-btn { font-size: 11px; }
+
+/* Why-panel body — always visible (no open/close toggle needed) */
+.why-body {
+  flex: 1; overflow-y: auto;
+  padding: 14px 18px 20px;
+  display: flex; flex-direction: column; gap: 0;
+}
+
+/* why-badge inside pane-title */
 .why-badge {
   font-size: 9px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase;
   padding: 2px 8px; border-radius: 20px;
   background: var(--acc-light); color: var(--accent);
 }
-.why-head-right { display: flex; align-items: center; gap: 12px; }
-.score-preview  { display: flex; gap: 8px; font-size: 10px; }
 
-.why-arrow { font-size: 10px; color: var(--text-3); transition: transform var(--t); }
-.why-panel.open .why-arrow { transform: rotate(180deg); }
-
-.why-body { display: none; padding: 0 20px 16px; max-height: 280px; overflow-y: auto; }
-.why-panel.open .why-body { display: block; }
+/* Score preview row in coaching pane header */
+.score-preview { display: flex; gap: 8px; font-size: 10px; }
 
 /* ── Score Cards ─────────────────────────────────────────── */
 .scores-row   { display: flex; gap: 10px; margin-bottom: 14px; padding-top: 6px; flex-wrap: wrap; }
@@ -660,12 +692,141 @@ select.form-sel option { background: var(--surface); color: var(--text-1); }
 /* Firefox scrollbar */
 * { scrollbar-width: thin; scrollbar-color: var(--text-3) var(--s-raised); }
 
-/* ── Responsive ──────────────────────────────────────────── */
-@media (max-width: 700px) {
-  /* Panes are already vertical — just hide divider on very small screens */
-  .pane-divider { display: none; }
-  .matrix-bar   { gap: 8px; }
-  .logo-tag     { display: none; }
-  .pill-group   { flex-wrap: wrap; }
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE — Tablet & Mobile
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Tablet landscape / small desktop (≤1024px) ─────────── */
+@media (max-width: 1024px) {
+  .pane-coaching { width: 280px; }
+  .var-tab { font-size: 9px; padding: 3px 7px; }
+}
+
+/* ── Tablet portrait (≤768px) ───────────────────────────── */
+@media (max-width: 768px) {
+  /* Stack output row vertically on tablets */
+  .output-row {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  /* Coaching becomes a horizontal strip at bottom */
+  .pane-coaching {
+    width: 100% !important;
+    height: 280px;
+    min-height: 0;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    transition: height 0.22s cubic-bezier(.4,0,.2,1);
+  }
+  .pane-coaching.collapsed {
+    width: 100% !important;
+    height: 44px !important; /* show header only */
+  }
+
+  /* Show expand icon pointing down on mobile (panel stacks below) */
+  .coach-collapse-btn { transform: rotate(90deg); }
+  .pane-coaching.collapsed .coach-collapse-btn { transform: rotate(-90deg); }
+
+  /* Hide X-axis divider (replaced by horizontal stacking) */
+  .pane-divider-x { display: none; }
+
+  /* Reduce pane min-heights for smaller screens */
+  .output-row .pane { min-height: 220px; }
+
+  /* Matrix bar: horizontally scrollable, no wrapping */
+  .matrix-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    padding: 6px 14px;
+    scrollbar-width: none;
+  }
+  .matrix-bar::-webkit-scrollbar { display: none; }
+  .mx-sep { display: none; }
+
+  /* Slightly smaller header on tablet */
+  .header { height: 48px; padding: 0 14px; }
+  .logo-tag { display: none; }
+  .api-pill { display: none; }  /* hide full pill, keep settings btn */
+
+  /* Adjust coaching why-body height */
+  .pane-coaching .why-body { max-height: 220px; }
+
+  /* Scores row scrolls horizontally */
+  .scores-row { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+  .scores-row::-webkit-scrollbar { display: none; }
+}
+
+/* ── Mobile phone (≤480px) ──────────────────────────────── */
+@media (max-width: 480px) {
+  /* Header: compact */
+  .header { padding: 0 10px; }
+  .logo-name { font-size: 14px; }
+  .logo-mark { width: 26px; height: 26px; font-size: 12px; }
+  .icon-btn  { width: 30px; height: 30px; font-size: 12px; }
   .usage-counter { display: none !important; }
+
+  /* Matrix bar: smaller text */
+  .matrix-label { display: none; }
+  .mx-sublabel  { font-size: 8px; }
+  select.mx-sel { font-size: 10px; min-width: 100px; padding: 3px 22px 3px 7px; }
+
+  /* Pill buttons: compact */
+  .pill-group { gap: 2px; }
+  .pill-btn   { font-size: 9px; padding: 3px 8px; }
+
+  /* Vibe slider: shorter */
+  .vibe-wrap { min-width: 130px; }
+
+  /* Input pane: min-height reduced for phone */
+  .pane-input { min-height: 200px; }
+  textarea.draft { font-size: 15px; min-height: 160px; }
+  .heatmap-layer { font-size: 15px; min-height: 160px; }
+
+  /* Pane head: tighter */
+  .pane-head { padding: 8px 12px; }
+  .pane-title { font-size: 13px; }
+  .pane-foot  { padding: 8px 12px; }
+
+  /* Output pane */
+  .output-row .pane { min-height: 180px; }
+
+  /* Coaching pane: taller on phone for readability */
+  .pane-coaching { height: 300px; }
+
+  /* Buttons: larger touch targets */
+  .btn { font-size: 13px; padding: 9px 14px; }
+  .btn-accent { width: 100%; justify-content: center; }
+
+  /* Footer: stack vertically */
+  .pane-foot { flex-direction: column; align-items: stretch; gap: 8px; }
+  .pane-foot > div { justify-content: stretch; }
+  .pane-foot .btn-ghost { flex: 1; justify-content: center; }
+  #outFoot > div { flex-wrap: wrap; }
+
+  /* Var tabs: scroll horizontally */
+  .var-tabs  { overflow-x: auto; scrollbar-width: none; }
+  .var-tabs::-webkit-scrollbar { display: none; }
+  .var-tab   { font-size: 9px; white-space: nowrap; }
+
+  /* Output text: slightly smaller */
+  .var-text { font-size: 15px; }
+
+  /* Score cards: smaller */
+  .score-card { min-width: 76px; padding: 8px 10px; }
+  .score-ring { width: 40px; height: 40px; }
+  .score-num  { font-size: 10px; }
+
+  /* Y-axis pane divider: larger touch target */
+  .pane-divider { height: 10px; }
+  .pane-divider-handle { width: 32px; }
+
+  /* Modal: full-width */
+  .modal { padding: 20px 16px; width: 100%; border-radius: var(--r-lg); }
+  .modal-title { font-size: 15px; }
+  .prov-btn { font-size: 11px; padding: 8px; }
 }
