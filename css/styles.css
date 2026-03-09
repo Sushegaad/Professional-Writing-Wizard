@@ -309,7 +309,7 @@ input[type=range].vibe::-webkit-slider-thumb:hover {
 textarea.draft {
   width: 100%; min-height: 42vh; resize: none; border: none; outline: none;
   background: var(--bg); color: var(--text-1);
-  font-family: inherit; font-size: 14px; line-height: 1.8; font-weight: 450;
+  font-family: inherit; font-size: 12px; line-height: 1.8; font-weight: 450;
   padding: 20px 24px; overflow-y: auto;
   /* fill parent flex container */
   flex: 1;
@@ -356,7 +356,7 @@ textarea.draft::placeholder { color: var(--text-3); line-height: 1.9; font-weigh
 .heatmap-layer {
   display: none;
   width: 100%; min-height: 42vh;
-  padding: 20px 24px; font-family: inherit; font-size: 14px; line-height: 1.8;
+  padding: 20px 24px; font-family: inherit; font-size: 12px; line-height: 1.8;
   color: var(--text-1); white-space: pre-wrap; word-wrap: break-word;
   background: var(--bg);
 }
@@ -439,7 +439,7 @@ textarea.draft::placeholder { color: var(--text-3); line-height: 1.9; font-weigh
 }
 .var-card-name { font-size: 14px; font-weight: 800; margin-bottom: 3px; }
 .var-card-tag  { font-size: 11px; color: var(--text-2); }
-.var-text      { font-size: 14px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; font-weight: 420; }
+.var-text      { font-size: 12px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; font-weight: 420; }
 
 /* ── Empty State ─────────────────────────────────────────── */
 .empty {
@@ -817,8 +817,8 @@ select.form-sel option { background: var(--surface); color: var(--text-1); }
 
   /* Input pane: min-height reduced for phone */
   .pane-input { min-height: 200px; }
-  textarea.draft { font-size: 13px; min-height: 160px; }
-  .heatmap-layer { font-size: 13px; min-height: 160px; }
+  textarea.draft { font-size: 11px; min-height: 160px; }
+  .heatmap-layer { font-size: 11px; min-height: 160px; }
 
   /* Pane head: tighter */
   .pane-head { padding: 8px 12px; }
@@ -847,7 +847,7 @@ select.form-sel option { background: var(--surface); color: var(--text-1); }
   .var-tab   { font-size: 9px; white-space: nowrap; }
 
   /* Output text: slightly smaller */
-  .var-text { font-size: 13px; }
+  .var-text { font-size: 11px; }
 
   /* Score cards: smaller */
   .score-card { min-width: 76px; padding: 8px 10px; }

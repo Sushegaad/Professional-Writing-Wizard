@@ -7,50 +7,26 @@
 // ── Application State ───────────────────────────────────────
 
 const AppState = {
-  provider        : 'claude',
-  apiKey          : '',
-  model           : 'claude-sonnet-4-5-20250929',
-  persona         : 'ic',
-  audience        : 'peers',
-  goal            : 'inform',
-  type            : 'email',
-  vibe            : 30,
-  heatOn          : false,
-  curVar          : 0,
-  result          : null,
-  busy            : false,
-  _injectedKeyOnly: false,   // true when running on the baked-in key with no personal key saved
+  provider : 'claude',
+  apiKey   : '',
+  model    : 'claude-sonnet-4-5-20250929',
+  persona  : 'ic',
+  audience : 'peers',
+  goal     : 'inform',
+  type     : 'email',
+  vibe     : 30,
+  heatOn   : false,
+  curVar   : 0,
+  result   : null,
+  busy     : false,
 };
 
-// ── Usage Gating (show Settings after USAGE_GATE runs on injected key) ──
-const USAGE_GATE = 50;
-
-function getRunCount()     { return parseInt(localStorage.getItem('cv_run_count') || '0', 10); }
-function bumpRunCount()    { localStorage.setItem('cv_run_count', getRunCount() + 1); refreshUsageCounter(); }
-function hasPersonalKey()  { try { return !!JSON.parse(localStorage.getItem('cv_cfg') || '{}').apiKey; } catch(_){ return false; } }
-
-function refreshUsageCounter() {
-  const el = document.getElementById('usageCounter');
-  const ct = document.getElementById('usageCount');
-  if (!el || !ct) return;
-  if (AppState._injectedKeyOnly) {
-    const n = getRunCount();
-    ct.textContent = n;
-    el.classList.add('show');
-    // Colour the counter as it approaches the gate
-    const ratio = n / USAGE_GATE;
-    el.style.color       = ratio >= 0.8 ? 'var(--yellow)' : 'var(--text-3)';
-    el.style.borderColor = ratio >= 0.8 ? 'var(--yellow)' : 'var(--border)';
-  } else {
-    el.classList.remove('show');
-  }
-}
+function hasPersonalKey() { try { return !!JSON.parse(localStorage.getItem('cv_cfg') || '{}').apiKey; } catch(_){ return false; } }
 
 // ── Initialisation ───────────────────────────────────────────
 
 (function init() {
   // 1. Apply GitHub Actions-injected config (from config.js)
-  const injectedKey = window.CV_CONFIG?.apiKey || '';
   if (window.CV_CONFIG) {
     if (CV_CONFIG.apiKey)   AppState.apiKey   = CV_CONFIG.apiKey;
     if (CV_CONFIG.provider) AppState.provider = CV_CONFIG.provider;
@@ -65,18 +41,14 @@ function refreshUsageCounter() {
     if (saved.model)    AppState.model    = saved.model;
   } catch (_) {}
 
-  // Track whether this session is running purely on the site-wide injected key
-  AppState._injectedKeyOnly = !!(injectedKey && !hasPersonalKey());
-
   // 3. Restore theme preference
   const savedTheme = localStorage.getItem('cv_theme') || 'light';
   if (savedTheme === 'dark') document.body.classList.add('dark');
   refreshThemeBtn();
 
-  // 4. Sync UI — no modal on load; visitors with the injected key just start writing
+  // 4. Sync UI — no modal on load; visitors start writing immediately
   refreshApiUI();
   syncVibe(AppState.vibe);
-  refreshUsageCounter();
 })();
 
 // ── Theme Toggle ─────────────────────────────────────────────
@@ -97,13 +69,10 @@ function refreshThemeBtn() {
 
 // ── Settings Modal ───────────────────────────────────────────
 
-function openSettings(opts) {
-  // Restore default modal title/sub unless a custom message was already injected by the usage gate
-  if (!opts?.keepTitle) {
-    document.getElementById('settingsModalTitle').textContent = '⚙ API Configuration';
-    document.getElementById('settingsModalSub').textContent   =
-      'Your key is saved in your browser only and is sent directly to the AI provider — never to any third-party server.';
-  }
+function openSettings() {
+  document.getElementById('settingsModalTitle').textContent = '⚙ API Configuration';
+  document.getElementById('settingsModalSub').textContent   =
+    'Your key is saved in your browser only and is sent directly to the AI provider — never to any third-party server.';
   document.getElementById('settingsOverlay').classList.add('on');
   document.getElementById('keyInp').value   = AppState.apiKey;
   document.getElementById('modelSel').value = AppState.model;
@@ -147,9 +116,8 @@ function saveSettings() {
   const key = document.getElementById('keyInp').value.trim();
   if (!key) { toast('Please enter an API key', 'err'); return; }
 
-  AppState.apiKey          = key;
-  AppState.model           = document.getElementById('modelSel').value;
-  AppState._injectedKeyOnly = false;   // User now has their own key — stop gating
+  AppState.apiKey = key;
+  AppState.model  = document.getElementById('modelSel').value;
 
   localStorage.setItem('cv_cfg', JSON.stringify({
     apiKey  : AppState.apiKey,
@@ -158,7 +126,6 @@ function saveSettings() {
   }));
 
   refreshApiUI();
-  refreshUsageCounter();
   closeSettings();
   toast('Settings saved — using your own API key!', 'ok');
 }
@@ -318,22 +285,6 @@ async function runAnalysis() {
     }
 
     toast('Analysis complete!', 'ok');
-
-    // ── Usage gate: nudge visitors to add their own key after USAGE_GATE runs ──
-    if (AppState._injectedKeyOnly) {
-      bumpRunCount();
-      const count = getRunCount();
-      if (count === USAGE_GATE) {
-        // Show modal with a soft "bring your own key" message after a brief delay
-        setTimeout(() => {
-          document.getElementById('settingsModalTitle').textContent = '🎉 Enjoying ClearVoice?';
-          document.getElementById('settingsModalSub').textContent   =
-            `You've run ${USAGE_GATE} analyses on the shared key — thanks for trying it out! ` +
-            'Add your own API key below to keep going without limits.';
-          openSettings({ keepTitle: true });
-        }, 1200);
-      }
-    }
 
   } catch (e) {
     console.error('[ClearVoice] Analysis error:', e);
