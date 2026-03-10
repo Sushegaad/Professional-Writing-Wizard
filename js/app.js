@@ -21,8 +21,6 @@ const AppState = {
   busy     : false,
 };
 
-function hasPersonalKey() { try { return !!JSON.parse(localStorage.getItem('cv_cfg') || '{}').apiKey; } catch(_){ return false; } }
-
 // ── Initialisation ───────────────────────────────────────────
 
 (function init() {
